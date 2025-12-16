@@ -55,44 +55,54 @@ if df is not None:
     
     st.markdown("---")
     
-    # Gráficos Row 1
-    c1, c2 = st.columns((2, 1))
+    st.markdown("---")
     
-    with c1:
-        st.subheader("Mapa RFM (Recencia vs Valor)")
+    # --- TABS ---
+    tab1, tab2, tab3 = st.tabs(["1. General (Mapa)", "2. Estadísticas", "3. Datos Detallados"])
+    
+    # TAB 1: GENERAL (Scatter)
+    with tab1:
+        st.subheader("Mapa de Segmentación RFM")
+        st.markdown("**Cómo leer:** Cada punto es un cliente. Los colores representan el segmento asignado.")
+        
         df_viz = df_filtered[df_filtered["Monetary"] < df_filtered["Monetary"].quantile(0.999)]
         fig_scatter = px.scatter(
             df_viz, x="Recency", y="Monetary", color="Cluster",
             hover_data=["FkCliente", "Frequency", "Tipo"],
-            color_continuous_scale="Viridis"
+            color_continuous_scale="Viridis",
+            height=600
         )
         st.plotly_chart(fig_scatter, use_container_width=True)
-        
-    with c2:
-        st.subheader("Distribución")
-        cluster_counts = df_filtered["Cluster"].value_counts().reset_index()
-        cluster_counts.columns = ["Cluster", "Cantidad"]
-        fig_bar = px.bar(cluster_counts, x="Cluster", y="Cantidad", color="Cluster", text="Cantidad")
-        st.plotly_chart(fig_bar, use_container_width=True)
-        
-    # Gráficos Row 2 - Canales
-    st.subheader("Preferencia de Canal")
-    channel_cols = [c for c in df.columns if "Share_Channel_" in c]
-    if channel_cols:
-        channel_data = df_filtered.groupby("Cluster")[channel_cols].mean().reset_index()
-        channel_data.columns = [c.replace("Share_Channel_", "") for c in channel_data.columns]
-        df_melt = channel_data.melt(id_vars="Cluster", var_name="Canal", value_name="Proporcion")
-        
-        fig_channels = px.bar(
-            df_melt, x="Cluster", y="Proporcion", color="Canal", 
-            barmode="stack"
-        )
-        st.plotly_chart(fig_channels, use_container_width=True)
 
-    # Tabla
-    st.markdown("---")
-    st.subheader("Detalle de Clientes")
-    st.dataframe(df_filtered)
+    # TAB 2: ESTADISTICAS
+    with tab2:
+        c1, c2 = st.columns(2)
+        
+        with c1:
+            st.subheader("Distribución de Clientes")
+            cluster_counts = df_filtered["Cluster"].value_counts().reset_index()
+            cluster_counts.columns = ["Cluster", "Cantidad"]
+            fig_bar = px.bar(cluster_counts, x="Cluster", y="Cantidad", color="Cluster", text="Cantidad")
+            st.plotly_chart(fig_bar, use_container_width=True)
+            
+        with c2:
+            st.subheader("Preferencia de Canal")
+            channel_cols = [c for c in df.columns if "Share_Channel_" in c]
+            if channel_cols:
+                channel_data = df_filtered.groupby("Cluster")[channel_cols].mean().reset_index()
+                channel_data.columns = [c.replace("Share_Channel_", "") for c in channel_data.columns]
+                df_melt = channel_data.melt(id_vars="Cluster", var_name="Canal", value_name="Proporcion")
+                
+                fig_channels = px.bar(
+                    df_melt, x="Cluster", y="Proporcion", color="Canal", 
+                    barmode="stack"
+                )
+                st.plotly_chart(fig_channels, use_container_width=True)
+
+    # TAB 3: DATOS
+    with tab3:
+        st.subheader("Base de Clientes Filtrada")
+        st.dataframe(df_filtered)
     
 else:
     st.error("No se encontraron datos.")

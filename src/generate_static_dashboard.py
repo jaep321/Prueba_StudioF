@@ -53,7 +53,11 @@ def generate_dashboard():
     else:
         div_channels = ""
 
-    # --- KPIs ---
+    # 3. Canales (y Datos Tab)
+    # repurposing 'risk_html' for the general data table in Tab 3
+    # Show Top 100 Monetario
+    top_df = df.sort_values('Monetary', ascending=False).head(50)
+    risk_html = top_df[['FkCliente', 'Recency', 'Frequency', 'Monetary', 'Cluster']].to_html(classes="table table-striped table-hover", index=False)
     total_clientes = len(df)
     avg_monetary = df["Monetary"].mean()
     riesgo = len(df[df["Recency"] > 120])
@@ -68,6 +72,7 @@ def generate_dashboard():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Dashboard Studio F</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <style>
             body {{ background-color: #f8f9fa; }}
             .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
@@ -88,19 +93,50 @@ def generate_dashboard():
                 <div class="col-md-3"><div class="kpi-card"><div class="kpi-value">{pct_riesgo:.1f}%</div><div class="kpi-label">Tasa de Fuga</div></div></div>
             </div>
 
-            <!-- Row 1: Scatter -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card p-3">
-                        {div_scatter}
+            <!-- TABS -->
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item"><button class="nav-link active" id="gen-tab" data-bs-toggle="tab" data-bs-target="#gen" type="button">1. General (Mapa)</button></li>
+                <li class="nav-item"><button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button">2. Estadísticas</button></li>
+                <li class="nav-item"><button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data" type="button">3. Datos Detallados</button></li>
+            </ul>
+            
+            <div class="tab-content" id="myTabContent">
+                <!-- TAB 1: GENERAL -->
+                <div class="tab-pane fade show active" id="gen">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card p-3">
+                                <h4 class="card-title">Mapa de Segmentación RFM</h4>
+                                <p class="text-muted">Cada punto representa un cliente. Filtre por cluster para explorar.</p>
+                                {div_scatter}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Row 2: Bars -->
-            <div class="row">
-                <div class="col-md-6"><div class="card p-3">{div_bar}</div></div>
-                <div class="col-md-6"><div class="card p-3">{div_channels}</div></div>
+                
+                <!-- TAB 2: ESTADISTICAS -->
+                <div class="tab-pane fade" id="stats">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card p-3">
+                                {div_bar}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card p-3">
+                                {div_channels}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TAB 3: DATOS -->
+                <div class="tab-pane fade" id="data">
+                    <div class="alert alert-info">Mostrando los Top 50 clientes por valor monetario (para optimizar carga web).</div>
+                    <div class="table-responsive">
+                        {risk_html} 
+                    </div>
+                </div>
             </div>
             
             <footer class="text-center mt-4">Generado con Python</footer>
