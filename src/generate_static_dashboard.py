@@ -5,54 +5,61 @@ import os
 
 def generate_dashboard():
     base_path = r"C:\Users\JORGE\Desktop\Prueba - Studio F\Prueba Tecnica Analista datos BI"
-    
-    # Paths
-    csv_seg = os.path.join(base_path, "output", "Clientes_Segmentados.csv")
-    csv_trend = os.path.join(base_path, "output", "Ventas_Mensuales.csv")
-    csv_zone = os.path.join(base_path, "output", "Ventas_Zona.csv")
+    csv_path = os.path.join(base_path, "output", "Clientes_Segmentados.csv")
     output_html = os.path.join(base_path, "docs", "index.html")
     
-    print("Cargando datos...")
-    if not os.path.exists(csv_seg): return
-    
-    df = pd.read_csv(csv_seg)
-    df_trend = pd.read_csv(csv_trend) if os.path.exists(csv_trend) else pd.DataFrame()
-    df_zone = pd.read_csv(csv_zone) if os.path.exists(csv_zone) else pd.DataFrame()
+    if not os.path.exists(csv_path):
+        print("Error: No se encontró Clientes_Segmentados.csv")
+        return
 
-    # --- Generación de Gráficos (HTML Divs) ---
-    
-    # PAGE 1: OVERVIEW
-    # Trend
-    if not df_trend.empty:
-        fig_trend = px.line(df_trend, x='Mes', y='Ventas', title="Evolución Mensual 2023", markers=True)
-        div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn')
-    else: div_trend = "No data"
-    
-    # Map (Bar City)
-    if not df_zone.empty:
-        top_cities = df_zone.sort_values('VentaSinIVA', ascending=False).head(10)
-        fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Top 10 Ciudades")
-        div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False)
-    else: div_map = "No data"
+    df = pd.read_csv(csv_path)
 
-    # PAGE 2: SEGMENTATION
-    # Sccatter
+    # --- Generación de Gráficos ---
+    
+    # 1. Scatter RFM
     df_viz = df[df['Monetary'] < df['Monetary'].quantile(0.999)].copy()
-    fig_scatter = px.scatter(df_viz, x="Recency", y="Monetary", color="Cluster", hover_data=["FkCliente"], title="Mapa RFM", height=500)
-    div_scatter = pio.to_html(fig_scatter, full_html=False, include_plotlyjs=False)
-    
-    # Donut
-    cnt = df["Cluster"].value_counts().reset_index()
-    cnt.columns = ["Cluster", "Cnt"]
-    fig_donut = px.pie(cnt, names="Cluster", values="Cnt", hole=0.4, title="Distribución")
-    div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False)
-    
-    # PAGE 3: ALERTS
-    # Risk Table (Simulated with HTML)
-    risk_df = df[df['Recency'] > 90].sort_values('Monetary', ascending=False).head(10)
-    risk_html = risk_df[['FkCliente', 'Recency', 'Monetary', 'Cluster']].to_html(classes="table table-striped", index=False)
+    fig_scatter = px.scatter(
+        df_viz, x="Recency", y="Monetary", color="Cluster",
+        hover_data=["FkCliente", "Frequency", "Tipo"],
+        title="Mapa de Clientes (Recencia vs Valor)",
+        color_continuous_scale="Viridis",
+        height=500
+    )
+    div_scatter = pio.to_html(fig_scatter, full_html=False, include_plotlyjs='cdn')
 
-    # --- HTML Template with Bootstrap Tabs ---
+    # 2. Distribución Clusters
+    cluster_counts = df["Cluster"].value_counts().reset_index()
+    cluster_counts.columns = ["Cluster", "Cantidad"]
+    fig_bar = px.bar(
+        cluster_counts, x="Cluster", y="Cantidad", color="Cluster", 
+        text="Cantidad", title="Conteo de Clientes",
+        height=400
+    )
+    div_bar = pio.to_html(fig_bar, full_html=False, include_plotlyjs=False)
+
+    # 3. Canales
+    channel_cols = [c for c in df.columns if "Share_Channel_" in c]
+    if channel_cols:
+        channel_data = df.groupby("Cluster")[channel_cols].mean().reset_index()
+        channel_data.columns = [c.replace("Share_Channel_", "") for c in channel_data.columns]
+        df_melt = channel_data.melt(id_vars="Cluster", var_name="Canal", value_name="Proporcion")
+        
+        fig_channels = px.bar(
+            df_melt, x="Cluster", y="Proporcion", color="Canal", 
+            title="Preferencia de Canal", barmode="stack",
+            height=400
+        )
+        div_channels = pio.to_html(fig_channels, full_html=False, include_plotlyjs=False)
+    else:
+        div_channels = ""
+
+    # --- KPIs ---
+    total_clientes = len(df)
+    avg_monetary = df["Monetary"].mean()
+    riesgo = len(df[df["Recency"] > 120])
+    pct_riesgo = (riesgo / total_clientes * 100)
+
+    # --- HTML Template ---
     html_content = f"""
     <!DOCTYPE html>
     <html lang="es">
@@ -61,77 +68,42 @@ def generate_dashboard():
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Dashboard Studio F</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <style>
-            body {{ background-color: #f8f9fa; padding-top: 20px; }}
+            body {{ background-color: #f8f9fa; }}
             .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
-            .nav-tabs .nav-link.active {{ background-color: #e9ecef; font-weight: bold; }}
-            .tab-content {{ padding: 20px; background: white; border: 1px solid #dee2e6; border-top: none; }}
+            .kpi-card {{ text-align: center; padding: 20px; background: white; border-radius: 8px; }}
+            .kpi-value {{ font-size: 2em; font-weight: bold; color: #2c3e50; }}
+            .kpi-label {{ color: #7f8c8d; }}
         </style>
     </head>
     <body>
-        <div class="container">
+        <div class="container py-4">
             <h1 class="mb-4 text-center">📊 Tablero de Control - Studio F</h1>
             
-            <!-- KPIs Globales -->
+            <!-- KPIs -->
             <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-value">{total_clientes:,}</div>
-                        <div class="kpi-label">Clientes Totales</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-value">${avg_monetary:,.0f}</div>
-                        <div class="kpi-label">Venta Promedio</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-value">{riesgo:,}</div>
-                        <div class="kpi-label">Clientes en Riesgo (>120d)</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="kpi-card">
-                        <div class="kpi-value">{pct_riesgo:.1f}%</div>
-                        <div class="kpi-label">Tasa de Fuga</div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-value">{total_clientes:,}</div><div class="kpi-label">Clientes Totales</div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-value">${avg_monetary:,.0f}</div><div class="kpi-label">Venta Promedio</div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-value">{riesgo:,}</div><div class="kpi-label">Clientes en Riesgo</div></div></div>
+                <div class="col-md-3"><div class="kpi-card"><div class="kpi-value">{pct_riesgo:.1f}%</div><div class="kpi-label">Tasa de Fuga</div></div></div>
+            </div>
+
+            <!-- Row 1: Scatter -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card p-3">
+                        {div_scatter}
                     </div>
                 </div>
             </div>
 
-            <ul class="nav nav-tabs" id="myTab" role="tablist">
-                <li class="nav-item"><button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button">1. Visión General</button></li>
-                <li class="nav-item"><button class="nav-link" id="seg-tab" data-bs-toggle="tab" data-bs-target="#seg" type="button">2. Segmentación</button></li>
-                <li class="nav-item"><button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk" type="button">3. Alertas y Riesgo</button></li>
-            </ul>
-            
-            <div class="tab-content" id="myTabContent">
-                <!-- TAB 1 -->
-                <div class="tab-pane fade show active" id="overview">
-                    <div class="row">
-                        <div class="col-md-6"><div class="card p-2">{div_trend}</div></div>
-                        <div class="col-md-6"><div class="card p-2">{div_map}</div></div>
-                    </div>
-                </div>
-                
-                <!-- TAB 2 -->
-                <div class="tab-pane fade" id="seg">
-                    <div class="row">
-                        <div class="col-md-8"><div class="card p-2">{div_scatter}</div></div>
-                        <div class="col-md-4"><div class="card p-2">{div_donut}</div></div>
-                    </div>
-                </div>
-                
-                <!-- TAB 3 -->
-                <div class="tab-pane fade" id="risk">
-                    <h3 class="text-danger">Top 10 Clientes en Riesgo (>90 días)</h3>
-                    {risk_html}
-                </div>
+            <!-- Row 2: Bars -->
+            <div class="row">
+                <div class="col-md-6"><div class="card p-3">{div_bar}</div></div>
+                <div class="col-md-6"><div class="card p-3">{div_channels}</div></div>
             </div>
             
-            <footer class="text-center mt-4 text-muted">Generado con Python</footer>
+            <footer class="text-center mt-4">Generado con Python</footer>
         </div>
     </body>
     </html>
@@ -139,7 +111,8 @@ def generate_dashboard():
     
     with open(output_html, "w", encoding="utf-8") as f:
         f.write(html_content)
-    print(f"Update: Dashboard generated at {output_html}")
+    
+    print(f"Dashboard estático generado en: {output_html}")
 
 if __name__ == "__main__":
     generate_dashboard()
