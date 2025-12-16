@@ -10,6 +10,7 @@ def generate_dashboard():
     csv_seg = os.path.join(base_path, "output", "Clientes_Segmentados.csv")
     csv_trend = os.path.join(base_path, "output", "Ventas_Mensuales.csv")
     csv_zone = os.path.join(base_path, "output", "Ventas_Zona.csv")
+    csv_linea = os.path.join(base_path, "output", "Ventas_Linea.csv") # New
     output_html = os.path.join(base_path, "docs", "index.html")
     
     print("Cargando datos...")
@@ -18,6 +19,7 @@ def generate_dashboard():
     df = pd.read_csv(csv_seg)
     df_trend = pd.read_csv(csv_trend) if os.path.exists(csv_trend) else pd.DataFrame()
     df_zone = pd.read_csv(csv_zone) if os.path.exists(csv_zone) else pd.DataFrame()
+    df_linea = pd.read_csv(csv_linea) if os.path.exists(csv_linea) else pd.DataFrame()
 
     # --- KPIs GLOBALES ---
     total_clientes = len(df)
@@ -27,17 +29,26 @@ def generate_dashboard():
 
     # --- Generación de Gráficos (HTML Divs) ---
     
-    # TAB 1: OVERVIEW (Trend + Map)
+    # TAB 1: OVERVIEW
+    # Trend
     if not df_trend.empty:
         fig_trend = px.line(df_trend, x='Mes', y='Ventas', title="Evolución Mensual 2023", markers=True)
         div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn', config={'responsive': True})
     else: div_trend = "No data"
     
+    # Map
     if not df_zone.empty:
         top_cities = df_zone.sort_values('VentaSinIVA', ascending=False).head(10)
-        fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Top 10 Ciudades (Ventas)")
+        fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Top 10 Ciudades")
         div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False, config={'responsive': True})
     else: div_map = "No data"
+    
+    # Linea (New)
+    if not df_linea.empty:
+        top_linea = df_linea.head(10)
+        fig_linea = px.bar(top_linea, x='Linea', y='VentaSinIVA', title="Ventas por Categoría (Top 10)")
+        div_linea = pio.to_html(fig_linea, full_html=False, include_plotlyjs=False, config={'responsive': True})
+    else: div_linea = "No data"
 
     # TAB 2: SEGMENTATION (Scatter + Donut + Table)
     df_viz = df[df['Monetary'] < df['Monetary'].quantile(0.999)].copy()
@@ -76,15 +87,15 @@ def generate_dashboard():
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <style>
-            body {{ background-color: #f8f9fa; padding-top: 20px; }}
-            .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
+            body {{ background-color: #f8f9fa; padding-top: 20px; overflow-x: hidden; }} /* Fix Overflow */
+            .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }}
             .kpi-card {{ text-align: center; padding: 15px; background: white; border-radius: 8px; border-left: 5px solid #3498db; }}
             .kpi-value {{ font-size: 1.8em; font-weight: bold; color: #2c3e50; }}
             .kpi-label {{ color: #7f8c8d; font-size: 0.9em; }}
         </style>
     </head>
     <body>
-        <div class="container">
+        <div class="container-fluid px-4"> <!-- Wider Container -->
             <h1 class="mb-4 text-center">📊 Tablero de Control - Studio F</h1>
             
             <!-- KPIs GLOBALES -->
@@ -107,8 +118,13 @@ def generate_dashboard():
                 <!-- TAB 1: OVERVIEW -->
                 <div class="tab-pane fade show active" id="tab1">
                     <div class="row">
-                        <div class="col-md-6"><div class="card p-2">{div_trend}</div></div>
-                        <div class="col-md-6"><div class="card p-2">{div_map}</div></div>
+                        <div class="col-12">
+                            <div class="card p-2">{div_trend}</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6"><div class="card p-2">{div_map}</div></div>
+                        <div class="col-lg-6"><div class="card p-2">{div_linea}</div></div>
                     </div>
                 </div>
                 

@@ -27,13 +27,18 @@ def load_data():
     path_zone = os.path.join(base_path, "output", "Ventas_Zona.csv")
     if not os.path.exists(path_zone): path_zone = os.path.join(base_path, "Ventas_Zona.csv")
     
+    # 4. Ventas Linea (Nuevo Tab 1)
+    path_linea = os.path.join(base_path, "output", "Ventas_Linea.csv")
+    if not os.path.exists(path_linea): path_linea = os.path.join(base_path, "Ventas_Linea.csv")
+    
     df_seg = pd.read_csv(path_seg) if os.path.exists(path_seg) else None
     df_trend = pd.read_csv(path_trend) if os.path.exists(path_trend) else None
     df_zone = pd.read_csv(path_zone) if os.path.exists(path_zone) else None
+    df_linea = pd.read_csv(path_linea) if os.path.exists(path_linea) else None
     
-    return df_seg, df_trend, df_zone
+    return df_seg, df_trend, df_zone, df_linea
 
-df, df_trend, df_zone = load_data()
+df, df_trend, df_zone, df_linea = load_data()
 
 st.title("📊 Tablero de Control - Studio F")
 
@@ -70,24 +75,32 @@ if df is not None:
     with tab1:
         st.header("Visión General")
         
-        col_trend, col_map = st.columns(2)
+        # Row 1: Trend
+        st.subheader("Tendencia de Ventas (2023)")
+        if df_trend is not None:
+            fig_trend = px.line(df_trend, x='Mes', y='Ventas', markers=True, title="Evolución Mensual")
+            st.plotly_chart(fig_trend, use_container_width=True)
+            
+        st.markdown("---")
         
-        with col_trend:
-            st.subheader("Tendencia de Ventas (2023)")
-            if df_trend is not None:
-                fig_trend = px.line(df_trend, x='Mes', y='Ventas', markers=True, title="Evolución Mensual")
-                st.plotly_chart(fig_trend, use_container_width=True)
-            else:
-                st.info("No hay datos de tendencia mensual disponibles.")
-                
-        with col_map:
-            st.subheader("Ventas por Ciudad (Top 10)")
+        # Row 2: Map + Linea
+        c_map, c_cat = st.columns(2)
+        
+        with c_map:
+            st.subheader("Top Ciudades")
             if df_zone is not None:
                 top_cities = df_zone.sort_values('VentaSinIVA', ascending=False).head(10)
-                fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Mapa de Calor Geográfico")
+                fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Mapa de Calor (Top 10)")
                 st.plotly_chart(fig_map, use_container_width=True)
+                
+        with c_cat:
+            st.subheader("Ventas por Línea")
+            if df_linea is not None:
+                top_linea = df_linea.head(10)
+                fig_linea = px.bar(top_linea, x='Linea', y='VentaSinIVA', title="Top Categorías")
+                st.plotly_chart(fig_linea, use_container_width=True)
             else:
-                st.info("No hay datos geográficos disponibles.")
+                st.info("No hay datos de Línea disponibles.")
 
     # --- TAB 2: SEGMENTACION ---
     with tab2:

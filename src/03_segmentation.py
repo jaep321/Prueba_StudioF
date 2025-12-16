@@ -95,6 +95,11 @@ def realizar_segmentacion():
     csv_zona = os.path.join(ruta_base, "output", "Ventas_Zona.csv")
     ventas_zona.to_csv(csv_zona, index=False)
     
+    # Agrupar por Linea/Categoria (para Tab 1 - Nuevo)
+    ventas_linea = df_trans.groupby('Linea')['VentaSinIVA'].sum().reset_index().sort_values('VentaSinIVA', ascending=False)
+    csv_linea = os.path.join(ruta_base, "output", "Ventas_Linea.csv")
+    ventas_linea.to_csv(csv_linea, index=False)
+    
     # --- Guardar datos etiquetados para Power BI ---
     # Fix: Reset index to ensure FkCliente is a column for merge
     final_df = features.reset_index().merge(df_clients, on='FkCliente', how='left')
