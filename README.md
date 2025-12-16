@@ -140,7 +140,7 @@ Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit pa
 
 ### 🌐 Ver Dashboard Online
 
-Hemos desplegado una versión interactiva accesible desde cualquier navegador. **Haga clic en la imagen inferior** para explorar los datos dinámicamente:
+Se desplegó una versión interactiva accesible desde cualquier navegador. **Haga clic en la imagen inferior** para explorar los datos dinámicamente:
 
 [![Ver Dashboard Interactivo](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
 
