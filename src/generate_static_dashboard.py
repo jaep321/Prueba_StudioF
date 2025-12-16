@@ -65,7 +65,8 @@ def generate_dashboard():
     # Ensuring columns are named clearly
     table_view = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].copy()
     table_view.columns = ['ID Cliente', 'Cluster', 'Días Ult. Compra', 'Monto Total']
-    table_head = table_view.to_html(classes="table table-sm table-striped table-hover", index=False)
+    # Explicitly ensure no index and align left
+    table_head = table_view.to_html(classes="table table-sm table-striped table-hover text-start", index=False, border=0)
     
     # TAB 3: ALERTS (Risk Tables)
     # Semáforo Fuga (>90 days)

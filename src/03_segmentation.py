@@ -18,12 +18,19 @@ def realizar_segmentacion():
         df_trans = pd.read_excel(os.path.join(ruta_base, "BD_Transaccional.xlsx"))
         df_clients = pd.read_excel(os.path.join(ruta_base, "BD_Clientes.xlsx"))
     
-    # 1. Ingenieria de Caracteristicas en Transacciones
     # Convertir fecha
-    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], errors='coerce')
-    # Filter valid dates (e.g., from 2021 onwards) to avoid Year 0001 outliers
+    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Filter valid dates (e.g., from 2021 onwards)
     df_trans = df_trans[df_trans['FechaCalendario'] > '2020-01-01']
     
+    # Fallback to inference if format failed for all
+    if df_trans.empty:
+        # Reload and try auto
+        print("Warning: Strict date format failed, reloading with auto-detection...")
+        df_trans = pd.read_csv(os.path.join(ruta_base, "input", "Transacciones.csv"), sep=";")
+        df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], errors='coerce')
+        df_trans = df_trans[df_trans['FechaCalendario'] > '2020-01-01']
+        
     fecha_ref = df_trans['FechaCalendario'].max()
     
     # Agrupar por Cliente
@@ -101,8 +108,12 @@ def realizar_segmentacion():
     ventas_linea.to_csv(csv_linea, index=False)
     
     # --- Guardar datos etiquetados para Power BI ---
-    # Fix: Reset index to ensure FkCliente is a column for merge
+    # Fix: Ensure FkCliente is preserved and no extra index is created
     final_df = features.reset_index().merge(df_clients, on='FkCliente', how='left')
+    
+    # Filter out insanity (if any remain)
+    final_df = final_df[final_df['Recency'] < 5000] 
+    
     csv_final = os.path.join(ruta_base, "output", "Clientes_Segmentados.csv")
     final_df.to_csv(csv_final, index=False)
     print(f"Datos segmentados guardados en {csv_final}")
