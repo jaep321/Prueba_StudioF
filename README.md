@@ -129,13 +129,23 @@ Basado en el análisis de Recencia del Cluster principal:
 
 ---
 
-## 5. Tablero de Control (Propuesta)
+## 5. Tablero de Control Interactivo (Streamlit)
 
-Diseño propuesto para Power BI para monitoreo continuo:
+Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit para que pueda explorar los datos sin necesidad de licencias de Power BI.
 
-*   **Página 1 (Overview):** KPIs de Ventas, Ticket Promedio y Tasa de Fuga mensual.
-*   **Página 2 (Fidelización):** Gráfico de dispersión de Clusters (como el mostrado arriba) para ver migraciones.
-*   **Página 3 (Riesgos):** Lista de clientes con **Recencia > 90** y Alertas de clientes con compras inusualmente altas (Prevención Fraude).
+**Funcionalidades:**
+*   Filtros dinámicos por Cluster.
+*   Cálculo de KPIs en tiempo real (Ventas, Riesgo).
+*   Gráficos interactivos (Zoom, Hover) con Plotly.
+
+### 🖥️ Cómo ejecutar el tablero
+Para ver el dashboard en tu navegador, ejecuta el siguiente comando en la terminal:
+
+```bash
+streamlit run src/dashboard.py
+```
+
+Esto abrirá una ventana en tu navegador con la interfaz gráfica completa.
 
 ---
 

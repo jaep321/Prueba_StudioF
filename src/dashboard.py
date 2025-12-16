@@ -1,0 +1,129 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import os
+
+# Configuración de la página
+st.set_page_config(
+    page_title="Tablero de Control - Segmentación",
+    page_icon="📊",
+    layout="wide"
+)
+
+# Función para cargar datos
+@st.cache_data
+def load_data():
+    ruta_base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ruta_csv = os.path.join(ruta_base, "output", "Clientes_Segmentados.csv")
+    
+    if not os.path.exists(ruta_csv):
+        # Fallback a raiz si se ejecuta desde otro lado
+        ruta_csv = os.path.join(ruta_base, "Clientes_Segmentados.csv")
+        
+    if not os.path.exists(ruta_csv):
+        st.error(f"No se encontró el archivo de datos en: {ruta_csv}")
+        return None
+        
+    df = pd.read_csv(ruta_csv)
+    return df
+
+df = load_data()
+
+if df is not None:
+    # Sidebar - Filtros
+    st.sidebar.header("Filtros")
+    cluster_filter = st.sidebar.multiselect(
+        "Seleccionar Cluster:",
+        options=df["Cluster"].unique(),
+        default=df["Cluster"].unique()
+    )
+    
+    df_filtered = df[df["Cluster"].isin(cluster_filter)]
+    
+    # Título
+    st.title("📊 Tablero de Control - Segmentación de Clientes")
+    st.markdown("Este tablero interactivo permite explorar los resultados del modelo de segmentación K-Means.")
+    
+    # KPIs ROW
+    col1, col2, col3, col4 = st.columns(4)
+    
+    total_clientes = len(df_filtered)
+    avg_monetary = df_filtered["Monetary"].mean()
+    riesgo_fuga = len(df_filtered[df_filtered["Recency"] > 120])
+    pct_riesgo = (riesgo_fuga / total_clientes * 100) if total_clientes > 0 else 0
+    
+    col1.metric("Clientes Totales", f"{total_clientes:,}")
+    col2.metric("Venta Promedio", f"${avg_monetary:,.0f}")
+    col3.metric("Clientes e Riesgo (>120 días)", f"{riesgo_fuga:,}")
+    col4.metric("Tasa de Riesgo", f"{pct_riesgo:.1f}%")
+    
+    st.markdown("---")
+    
+    # Gráficos Row 1
+    c1, c2 = st.columns((2, 1))
+    
+    with c1:
+        st.subheader("Segmentación RFM (Recencia vs Monto)")
+        # Filtramos outlier extremo para visualizar mejor si no estÃ¡ seleccionado especificamente
+        df_viz = df_filtered.copy()
+        if df_filtered["Monetary"].max() > 100000000: # Si hay outliers gigantes
+             st.info("Nota: Se ocultaron outliers extremos (>100M) para mejorar la visualizacion, salvo que filtre por ellos.")
+             df_viz = df_filtered[df_filtered["Monetary"] < 100000000]
+
+        fig_scatter = px.scatter(
+            df_viz, 
+            x="Recency", 
+            y="Monetary", 
+            color="Cluster",
+            hover_data=["FkCliente", "Frequency", "Tipo"],
+            title="Mapa de Clientes (Recencia vs Valor)",
+            color_continuous_scale="Viridis"
+        )
+        st.plotly_chart(fig_scatter, use_container_width=True)
+        
+    with c2:
+        st.subheader("Distribución por Cluster")
+        cluster_counts = df_filtered["Cluster"].value_counts().reset_index()
+        cluster_counts.columns = ["Cluster", "Cantidad"]
+        fig_bar = px.bar(
+            cluster_counts, 
+            x="Cluster", 
+            y="Cantidad", 
+            color="Cluster", 
+            text="Cantidad",
+            title="Conteo de Clientes"
+        )
+        st.plotly_chart(fig_bar, use_container_width=True)
+        
+    # Gráficos Row 2 - Canales
+    st.subheader("Análisis de Canales")
+    try:
+        # Identificar columnas de canales dinÃ¡micamente
+        channel_cols = [c for c in df.columns if "Share_Channel_" in c]
+        if channel_cols:
+            channel_data = df_filtered.groupby("Cluster")[channel_cols].mean().reset_index()
+            # Rename for display
+            channel_data.columns = [c.replace("Share_Channel_", "") for c in channel_data.columns]
+            
+            # Melt for Plotly
+            df_melt = channel_data.melt(id_vars="Cluster", var_name="Canal", value_name="Proporcion")
+            
+            fig_channels = px.bar(
+                df_melt, 
+                x="Cluster", 
+                y="Proporcion", 
+                color="Canal", 
+                title="Preferencia de Canal Promedio por Cluster",
+                barmode="stack"
+            )
+            st.plotly_chart(fig_channels, use_container_width=True)
+    except Exception as e:
+        st.warning(f"No se pudo generar gráfico de canales: {e}")
+
+    # Tabla de Datos
+    st.markdown("---")
+    st.subheader("🔎 Explorador de Datos")
+    st.dataframe(df_filtered)
+    
+else:
+    st.warning("Esperando datos...")
