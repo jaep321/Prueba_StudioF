@@ -155,7 +155,7 @@ def generate_dashboard():
             <!-- TABS -->
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item"><button class="nav-link active" id="tab1-tab" data-bs-toggle="tab" data-bs-target="#tab1" type="button">1. Visión General</button></li>
-                <li class="nav-item"><button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button">2. Segmentación</button></li>
+                <li class="nav-item"><button class="nav-link" id="tab2-tab" data-bs-toggle="tab" data-bs-target="#tab2" type="button">2. Segmentación de Clientes</button></li>
                 <li class="nav-item"><button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button">3. Alertas y Riesgo</button></li>
             </ul>
             
