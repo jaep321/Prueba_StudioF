@@ -30,29 +30,31 @@ def generate_dashboard():
     # TAB 1: OVERVIEW (Trend + Map)
     if not df_trend.empty:
         fig_trend = px.line(df_trend, x='Mes', y='Ventas', title="Evolución Mensual 2023", markers=True)
-        div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn')
+        div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn', config={'responsive': True})
     else: div_trend = "No data"
     
     if not df_zone.empty:
         top_cities = df_zone.sort_values('VentaSinIVA', ascending=False).head(10)
         fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Top 10 Ciudades (Ventas)")
-        div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False)
+        div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False, config={'responsive': True})
     else: div_map = "No data"
 
     # TAB 2: SEGMENTATION (Scatter + Donut + Table)
     df_viz = df[df['Monetary'] < df['Monetary'].quantile(0.999)].copy()
     fig_scatter = px.scatter(df_viz, x="Recency", y="Monetary", color="Cluster", hover_data=["FkCliente"], title="Gráfico de Dispersión (Recencia vs Monto)", height=500)
-    div_scatter = pio.to_html(fig_scatter, full_html=False, include_plotlyjs=False)
+    div_scatter = pio.to_html(fig_scatter, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
     cnt = df["Cluster"].value_counts().reset_index()
     cnt.columns = ["Cluster", "Cnt"]
     fig_donut = px.pie(cnt, names="Cluster", values="Cnt", hole=0.4, title="Distribución por Cluster")
     fig_donut.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
-    div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False)
+    div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
     # Table (General)
-    # Fix: Ensure columns are clean
-    table_head = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].to_html(classes="table table-sm table-striped table-hover", index=False)
+    # Ensuring columns are named clearly
+    table_view = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].copy()
+    table_view.columns = ['ID Cliente', 'Cluster', 'Días Ult. Compra', 'Monto Total']
+    table_head = table_view.to_html(classes="table table-sm table-striped table-hover", index=False)
     
     # TAB 3: ALERTS (Risk Tables)
     # Semáforo Fuga (>90 days)

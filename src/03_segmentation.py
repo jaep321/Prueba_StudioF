@@ -20,7 +20,10 @@ def realizar_segmentacion():
     
     # 1. Ingenieria de Caracteristicas en Transacciones
     # Convertir fecha
-    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'])
+    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], errors='coerce')
+    # Filter valid dates (e.g., from 2021 onwards) to avoid Year 0001 outliers
+    df_trans = df_trans[df_trans['FechaCalendario'] > '2020-01-01']
+    
     fecha_ref = df_trans['FechaCalendario'].max()
     
     # Agrupar por Cliente
