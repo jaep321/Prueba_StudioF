@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.gemini/
+.vscode/
+inspection_scripts/
+tmp/
+*.log
+sample.txt
+eda_output.txt
+genero_analysis.txt
+recency_stats.txt
