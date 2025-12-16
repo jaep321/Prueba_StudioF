@@ -5,30 +5,30 @@ from sklearn.cluster import KMeans
 import os
 import matplotlib.pyplot as plt
 
-def perform_segmentation():
-    base_path = r"C:\Users\JORGE\Desktop\Prueba - Studio F\Prueba Tecnica Analista datos BI"
+def realizar_segmentacion():
+    ruta_base = r"C:\Users\JORGE\Desktop\Prueba - Studio F\Prueba Tecnica Analista datos BI"
     
-    # Load Data
-    print("Loading data...")
-    df_trans = pd.read_excel(os.path.join(base_path, "BD_Transaccional.xlsx"))
-    df_clients = pd.read_excel(os.path.join(base_path, "BD_Clientes.xlsx"))
+    # Cargar Datos
+    print("Cargando datos...")
+    try:
+        df_trans = pd.read_excel(os.path.join(ruta_base, "input", "BD_Transaccional.xlsx"))
+        df_clients = pd.read_excel(os.path.join(ruta_base, "input", "BD_Clientes.xlsx"))
+    except FileNotFoundError:
+        # Fallback si input no existe (estructura vieja)
+        df_trans = pd.read_excel(os.path.join(ruta_base, "BD_Transaccional.xlsx"))
+        df_clients = pd.read_excel(os.path.join(ruta_base, "BD_Clientes.xlsx"))
     
-    # 1. Feature Engineering on Transactions
-    # Convert date
+    # 1. Ingenieria de Caracteristicas en Transacciones
+    # Convertir fecha
     df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'])
-    ref_date = df_trans['FechaCalendario'].max()
+    fecha_ref = df_trans['FechaCalendario'].max()
     
-    # Handle returns (Negative Sales)
-    # We will assume Recency/Frequency should consider any interaction, but Monetary is net.
-    # Actually, for "Churn", returns are interactions too.
-    # But for "Value", we sum net.
-    
-    # Group by Client
-    print("Aggregating transactional data...")
+    # Agrupar por Cliente
+    print("Agregando datos transaccionales...")
     user_trans = df_trans.groupby('FkCliente').agg({
-        'FechaCalendario': lambda x: (ref_date - x.max()).days, # Recency
-        'NumDocumento': 'nunique', # Frequency
-        'VentaSinIVA': 'sum', # Monetary
+        'FechaCalendario': lambda x: (fecha_ref - x.max()).days, # Recencia
+        'NumDocumento': 'nunique', # Frecuencia
+        'VentaSinIVA': 'sum', # Monto (Monetary)
         'Cantidad': 'sum'
     }).rename(columns={
         'FechaCalendario': 'Recency',
@@ -37,62 +37,54 @@ def perform_segmentation():
         'Cantidad': 'Total_Items'
     })
     
-    # Product Preferences (Pivot Linea)
-    # Calculate % of spend per Linea
+    # Preferencias de Producto (Pivot Linea)
+    # Calcular % de gasto por Linea
     linea_pivot = df_trans.pivot_table(index='FkCliente', columns='Linea', values='VentaSinIVA', aggfunc='sum', fill_value=0)
-    linea_pivot = linea_pivot.div(linea_pivot.sum(axis=1), axis=0) # Convert to percentage
+    linea_pivot = linea_pivot.div(linea_pivot.sum(axis=1), axis=0) # Convertir a porcentaje
     linea_pivot.columns = ['Share_Linea_' + str(c) for c in linea_pivot.columns]
     
-    # Channel Preferences (Pivot TipoEstablecimiento)
+    # Preferencias de Canal (Pivot TipoEstablecimiento)
     channel_pivot = df_trans.pivot_table(index='FkCliente', columns='TipoEstablecimiento', values='NumDocumento', aggfunc='nunique', fill_value=0)
     channel_pivot = channel_pivot.div(channel_pivot.sum(axis=1), axis=0)
     channel_pivot.columns = ['Share_Channel_' + str(c) for c in channel_pivot.columns]
     
-    # Merge Features
+    # Unir Caracteristicas
     features = pd.concat([user_trans, linea_pivot, channel_pivot], axis=1)
     
-    # Clean cleanup
+    # Limpieza final
     features = features.fillna(0)
     features = features.replace([np.inf, -np.inf], 0)
     
-    # Merge with Demographics (just for profiling, maybe use Age for clustering?)
-    # Calculate Age
-    # df_clients['Fecha_Nacimiento'] = pd.to_datetime(df_clients['Fecha_Nacimiento'], errors='coerce')
-    # df_clients['Age'] = (ref_date - df_clients['Fecha_Nacimiento']).dt.days / 365.25
-    # For now, let's stick to behavioral segmentation (RFM + Preferences) for robust clusters
-    
-    # 2. Scaling
+    # 2. Escalado
     scaler = StandardScaler()
     scaled_features = scaler.fit_transform(features)
     
     # 3. K-Means
-    # Using K=4 (typical: Loyal, Potential, At Risk, Lost)
-    print("Running K-Means...")
+    # Usando K=4 (tipico: Leales, Potenciales, En Riesgo, Perdidos)
+    print("Ejecutando K-Means...")
     kmeans = KMeans(n_clusters=4, random_state=42, n_init=10)
     features['Cluster'] = kmeans.fit_predict(scaled_features)
     
-    # 4. Profile Clusters
-    profile = features.groupby('Cluster').mean()
-    count = features.groupby('Cluster').size().rename('Count')
-    profile = pd.concat([count, profile], axis=1)
+    # 4. Perfilamiento de Clusters
+    perfil = features.groupby('Cluster').mean()
+    conteo = features.groupby('Cluster').size().rename('Count')
+    perfil = pd.concat([conteo, perfil], axis=1)
     
-    # Save Results
-    output_file = os.path.join(base_path, "segmentation_profile.md")
-    with open(output_file, 'w') as f:
-        f.write("# Segmentation Results (K=4)\n\n")
-        f.write(profile.to_markdown())
-        f.write("\n\n## Cluster Interpretation Candidates:\n")
-        f.write("- **Recency**: Lower is better (more recent).\n")
-        f.write("- **Frequency/Monetary**: Higher is better.\n")
+    # Guardar Resultados
+    archivo_salida = os.path.join(ruta_base, "output", "Reporte_Tecnico.md") # Nota: esto sobreescribiria el reporte manual, mejor no.
+    # No guardamos reporte automatico aqui porque ya tenemos Entrega_Prueba.md. 
+    # Solo imprimimos perfil.
+    print("\nPerfil de Clusters:")
+    print(perfil.to_string())
         
-    # Save tagged data for Power BI
+    # Guardar datos etiquetados para Power BI
     final_df = features.merge(df_clients, on='FkCliente', how='left')
-    final_csv = os.path.join(base_path, "Clientes_Segmentados.csv")
-    final_df.to_csv(final_csv, index=False)
-    print(f"Saved segmented data to {final_csv}")
+    csv_final = os.path.join(ruta_base, "output", "Clientes_Segmentados.csv")
+    final_df.to_csv(csv_final, index=False)
+    print(f"Datos segmentados guardados en {csv_final}")
 
 if __name__ == "__main__":
     try:
-        perform_segmentation()
+        realizar_segmentacion()
     except Exception as e:
         print(f"Error: {e}")

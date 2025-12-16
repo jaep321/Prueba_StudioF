@@ -2,52 +2,52 @@ import pandas as pd
 import os
 import io
 
-def run_analysis():
-    base_path = r"C:\Users\JORGE\Desktop\Prueba - Studio F\Prueba Tecnica Analista datos BI"
-    files = {
+def ejecutar_analisis():
+    ruta_base = r"C:\Users\JORGE\Desktop\Prueba - Studio F\Prueba Tecnica Analista datos BI"
+    archivos = {
         "clientes": "BD_Clientes.xlsx",
         "transaccional": "BD_Transaccional.xlsx"
     }
     
-    output = []
+    salida = []
     
-    for name, filename in files.items():
-        path = os.path.join(base_path, filename)
-        output.append(f"# Analysis of {filename}")
+    for nombre, nombre_archivo in archivos.items():
+        ruta = os.path.join(ruta_base, nombre_archivo)
+        salida.append(f"# Analisis de {nombre_archivo}")
         try:
-            df = pd.read_excel(path)
-            output.append(f"- Shape: {df.shape}")
-            output.append(f"- Columns: {', '.join(df.columns)}")
+            df = pd.read_excel(ruta)
+            salida.append(f"- Dimensiones: {df.shape}")
+            salida.append(f"- Columnas: {', '.join(df.columns)}")
             
-            # Nulls
-            nulls = df.isnull().sum()
-            nulls = nulls[nulls > 0]
-            if not nulls.empty:
-                output.append("- Missing Values:")
-                for col, val in nulls.items():
-                    output.append(f"  - {col}: {val}")
+            # Nulos
+            nulos = df.isnull().sum()
+            nulos = nulos[nulos > 0]
+            if not nulos.empty:
+                salida.append("- Valores Faltantes:")
+                for col, val in nulos.items():
+                    salida.append(f"  - {col}: {val}")
             else:
-                output.append("- No missing values.")
+                salida.append("- No hay valores faltantes.")
                 
-            # Sample
-            output.append("\n- Sample Data:")
-            output.append(df.head(3).to_markdown(index=False))
+            # Muestra
+            salida.append("\n- Muestra de Datos:")
+            salida.append(df.head(3).to_markdown(index=False))
             
-            # Stats (numerical)
-            output.append("\n- Numerical Stats:")
-            output.append(df.describe().to_markdown())
+            # Estadísticas (numéricas)
+            salida.append("\n- Estadisticas Numericas:")
+            salida.append(df.describe().to_markdown())
             
-            output.append("\n" + "="*30 + "\n")
+            salida.append("\n" + "="*30 + "\n")
             
         except Exception as e:
-            output.append(f"Error loading {filename}: {str(e)}")
+            salida.append(f"Error cargando {nombre_archivo}: {str(e)}")
 
-    with open(os.path.join(base_path, "eda_summary.md"), "w", encoding="utf-8") as f:
-        f.write("\n".join(output))
+    with open(os.path.join(ruta_base, "eda_summary.md"), "w", encoding="utf-8") as f:
+        f.write("\n".join(salida))
 
 if __name__ == "__main__":
     try:
-        run_analysis()
-        print("Analysis complete. Saved to eda_summary.md")
+        ejecutar_analisis()
+        print("Analisis completo. Guardado en eda_summary.md")
     except Exception as e:
-        print(f"Global Error: {e}")
+        print(f"Error Global: {e}")
