@@ -87,6 +87,16 @@ Para el modelo de segmentación y riesgo (fuga), se construyeron las siguientes 
 
 ## 3. Segmentación con Metodología Estadística
 
+### Justificación Metodológica
+Para este análisis se seleccionó el **Aprendizaje No Supervisado (Clustering)**, específicamente el algoritmo **K-Means**, basado en el modelo **RFM (Recencia, Frecuencia, Valor Monetario)**.
+
+**¿Por qué se escogió este método?**
+
+1.  **Naturaleza de los Datos (Sin Etiquetas):** Los datos proporcionados son puramente transaccionales y **no cuentan con una etiqueta previa** (ej. "Cliente VIP", "Cliente Riesgoso"). Por lo tanto, los modelos predictivos supervisados (como árboles de decisión o regresión logística) no son aplicables en esta fase inicial, ya que requieren un histórico clasificado para entrenar.
+2.  **Modelo RFM:** Es el estándar de la industria en retail para evaluar el valor del cliente. Permite agrupar objetivamente a los usuarios basándose en hechos (lo que hicieron) en lugar de suposiciones demográficas.
+3.  **Objetividad del Algoritmo:** K-Means permite descubrir patrones ocultos y agrupar clientes por similitud matemática en su comportamiento de compra, eliminando el sesgo humano en la clasificación.
+
+### Resultados del Modelo
 Se utilizó **K-Means Clustering** sobre las variables normalizadas. Se hallaron **4 Segmentos**:
 
 ### Resultados Visuales
