@@ -142,7 +142,7 @@ Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit pa
 
 Hemos desplegado una versión interactiva accesible desde cualquier navegador. **Haga clic en la imagen inferior** para explorar los datos dinámicamente:
 
-[![Ver Dashboard Interactivo](images/scatter_rfm.png)](https://jaep321.github.io/Prueba_StudioF/)
+[![Ver Dashboard Interactivo](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
 
 > **Nota:** La versión online permite filtrar por cluster, hacer zoom en los gráficos y ver detalles específicos de cada cliente al pasar el cursor.
 
