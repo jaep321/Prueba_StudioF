@@ -131,8 +131,8 @@ def generate_dashboard():
 
             /* TABLA: fija columnas y evita header corrido */
             .table-responsive {{ overflow-x: auto; }}
-            table {{ width: 100%; table-layout: fixed; }}
-            th, td {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+            /* table {{ width: 100%; table-layout: fixed; }} REMOVED to fix alignment */
+            th, td {{ vertical-align: middle; }}
             
             .kpi-card {{ text-align: center; padding: 15px; background: white; border-radius: 8px; border-left: 5px solid #3498db; }}
             .kpi-value {{ font-size: 1.8em; font-weight: bold; color: #2c3e50; }}
