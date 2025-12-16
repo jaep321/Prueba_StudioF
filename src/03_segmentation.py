@@ -93,7 +93,8 @@ def realizar_segmentacion():
     ventas_zona.to_csv(csv_zona, index=False)
     
     # --- Guardar datos etiquetados para Power BI ---
-    final_df = features.merge(df_clients, on='FkCliente', how='left')
+    # Fix: Reset index to ensure FkCliente is a column for merge
+    final_df = features.reset_index().merge(df_clients, on='FkCliente', how='left')
     csv_final = os.path.join(ruta_base, "output", "Clientes_Segmentados.csv")
     final_df.to_csv(csv_final, index=False)
     print(f"Datos segmentados guardados en {csv_final}")

@@ -47,10 +47,12 @@ def generate_dashboard():
     cnt = df["Cluster"].value_counts().reset_index()
     cnt.columns = ["Cluster", "Cnt"]
     fig_donut = px.pie(cnt, names="Cluster", values="Cnt", hole=0.4, title="Distribución por Cluster")
+    fig_donut.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
     div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False)
     
     # Table (General)
-    table_head = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].to_html(classes="table table-sm table-striped", index=False)
+    # Fix: Ensure columns are clean
+    table_head = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].to_html(classes="table table-sm table-striped table-hover", index=False)
     
     # TAB 3: ALERTS (Risk Tables)
     # Semáforo Fuga (>90 days)
@@ -111,11 +113,33 @@ def generate_dashboard():
                 <!-- TAB 2: SEGMENTATION -->
                 <div class="tab-pane fade" id="tab2">
                     <div class="row">
-                        <div class="col-md-8"><div class="card p-2">{div_scatter}</div></div>
-                        <div class="col-md-4"><div class="card p-2">{div_donut}</div></div>
+                        <!-- Scatter más ancho -->
+                        <div class="col-lg-8">
+                            <div class="card p-2">
+                                <h5 class="card-title text-center">Mapa de Clientes (Recencia vs Valor)</h5>
+                                {div_scatter}
+                            </div>
+                        </div>
+                        <!-- Donut más compacto -->
+                        <div class="col-lg-4">
+                            <div class="card p-2">
+                                <h5 class="card-title text-center">Distribución</h5>
+                                {div_donut}
+                            </div>
+                        </div>
                     </div>
-                    <h5>Detalle de Clientes (Muestra)</h5>
-                    <div class="table-responsive">{table_head}</div>
+                    
+                    <!-- Separate Row for Table -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card p-3">
+                                <h5 class="card-title">Muestra de Clientes por Cluster</h5>
+                                <div class="table-responsive">
+                                    {table_head}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- TAB 3: ALERTS -->
