@@ -43,7 +43,7 @@ def generate_dashboard():
         div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False, config={'responsive': True, 'displayModeBar': False})
     else: div_map = "No data"
     
-    # Linea (New)
+    # Linea
     if not df_linea.empty:
         top_linea = df_linea.head(10)
         fig_linea = px.bar(top_linea, x='Linea', y='VentaSinIVA', title="Ventas por Categoría (Top 10)")
@@ -63,12 +63,31 @@ def generate_dashboard():
     
     cnt = df["Cluster"].value_counts().reset_index()
     cnt.columns = ["Cluster", "Cnt"]
-    fig_donut = px.pie(cnt, names="Cluster", values="Cnt", hole=0.4, title="Distribución por Cluster")
+    fig_donut = px.pie(
+        cnt,
+        names="Cluster",
+        values="Cnt",
+        hole=0.45
+    )
+
+    fig_donut.update_traces(
+        textinfo="percent",          # solo porcentaje
+        textposition="inside",
+        insidetextorientation="radial"
+    )
+
     fig_donut.update_layout(
-        autosize=True,
-        height=500,
-        margin=dict(l=10, r=10, t=60, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+        title=None,                  # QUITA el título del gráfico (ya tienes tu <h4>)
+        margin=dict(l=10, r=10, t=10, b=40),
+        uniformtext_minsize=12,      # tamaños mínimos
+        uniformtext_mode="hide",     # si no cabe, lo oculta (evita montajes)
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.15,
+            xanchor="center",
+            x=0.5
+        )
     )
     div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
