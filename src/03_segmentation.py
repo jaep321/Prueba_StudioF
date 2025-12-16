@@ -77,7 +77,22 @@ def realizar_segmentacion():
     print("\nPerfil de Clusters:")
     print(perfil.to_string())
         
-    # Guardar datos etiquetados para Power BI
+    # --- NUEVO: Exportar Series de Tiempo para Dashboard (Página 1) ---
+    print("Generando datos temporales...")
+    # Agrupar por Mes
+    df_trans['Mes'] = df_trans['FechaCalendario'].dt.to_period('M').astype(str)
+    ventas_mensuales = df_trans.groupby('Mes')['VentaSinIVA'].sum().reset_index()
+    ventas_mensuales.columns = ['Mes', 'Ventas']
+    
+    csv_mensual = os.path.join(ruta_base, "output", "Ventas_Mensuales.csv")
+    ventas_mensuales.to_csv(csv_mensual, index=False)
+    
+    # Agrupar por Zona/Ciudad (para Mapa)
+    ventas_zona = df_trans.groupby('Ciudad')['VentaSinIVA'].sum().reset_index()
+    csv_zona = os.path.join(ruta_base, "output", "Ventas_Zona.csv")
+    ventas_zona.to_csv(csv_zona, index=False)
+    
+    # --- Guardar datos etiquetados para Power BI ---
     final_df = features.merge(df_clients, on='FkCliente', how='left')
     csv_final = os.path.join(ruta_base, "output", "Clientes_Segmentados.csv")
     final_df.to_csv(csv_final, index=False)
