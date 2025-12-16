@@ -138,14 +138,19 @@ Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit pa
 *   Cálculo de KPIs en tiempo real (Ventas, Riesgo).
 *   Gráficos interactivos (Zoom, Hover) con Plotly.
 
-### 🖥️ Cómo ejecutar el tablero
-Para ver el dashboard en tu navegador, ejecuta el siguiente comando en la terminal:
+### 🌐 Ver Dashboard Online (GitHub Pages)
 
+Si ha activado GitHub Pages en este repositorio, puede ver el tablero interactivo directamente aquí:
+
+👉 **[Ver Dashboard En Vivo](https://jaep321.github.io/Prueba_StudioF/)**
+
+*(Para activar: Ir a Settings > Pages > Source: Deploy from a branch > Select `/docs` folder)*
+
+### 🖥️ Ejecutar localmente (Streamlit)
+Si prefiere correr la versión de Python localmente:
 ```bash
 streamlit run src/dashboard.py
 ```
-
-Esto abrirá una ventana en tu navegador con la interfaz gráfica completa.
 
 ---
 
