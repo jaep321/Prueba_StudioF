@@ -73,6 +73,34 @@ def generate_dashboard():
         <div class="container">
             <h1 class="mb-4 text-center">📊 Tablero de Control - Studio F</h1>
             
+            <!-- KPIs Globales -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-value">{total_clientes:,}</div>
+                        <div class="kpi-label">Clientes Totales</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-value">${avg_monetary:,.0f}</div>
+                        <div class="kpi-label">Venta Promedio</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-value">{riesgo:,}</div>
+                        <div class="kpi-label">Clientes en Riesgo (>120d)</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="kpi-card">
+                        <div class="kpi-value">{pct_riesgo:.1f}%</div>
+                        <div class="kpi-label">Tasa de Fuga</div>
+                    </div>
+                </div>
+            </div>
+
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item"><button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button">1. Visión General</button></li>
                 <li class="nav-item"><button class="nav-link" id="seg-tab" data-bs-toggle="tab" data-bs-target="#seg" type="button">2. Segmentación</button></li>

@@ -49,26 +49,26 @@ if df is not None:
     # Filtrar DF principal
     df_filtered = df[df["Cluster"].isin(cluster_filter)]
     
+    # KPIs Globales
+    c1, c2, c3, c4 = st.columns(4)
+    total_ventas = df_filtered["Monetary"].sum()
+    ticket_prom = df_filtered["Monetary"].mean()
+    activos = len(df_filtered[df_filtered["Recency"] < 120])
+    tasa_fuga = (len(df_filtered[df_filtered["Recency"] >= 120]) / len(df_filtered) * 100)
+    
+    c1.metric("Ventas Totales (Base)", f"${total_ventas:,.0f}")
+    c2.metric("Ticket Promedio", f"${ticket_prom:,.0f}")
+    c3.metric("Clientes Activos (<120d)", f"{activos:,}")
+    c4.metric("Tasa de Fuga", f"{tasa_fuga:.1f}%")
+    
+    st.markdown("---")
+
     # --- TABS (Páginas) ---
     tab1, tab2, tab3 = st.tabs(["1. Visión General", "2. Segmentación", "3. Alertas y Riesgo"])
     
     # --- TAB 1: VISION GENERAL ---
     with tab1:
         st.header("Visión General del Negocio")
-        
-        # KPIs
-        c1, c2, c3, c4 = st.columns(4)
-        total_ventas = df_filtered["Monetary"].sum() # Aprox
-        ticket_prom = df_filtered["Monetary"].mean()
-        activos = len(df_filtered[df_filtered["Recency"] < 120])
-        tasa_fuga = (len(df_filtered[df_filtered["Recency"] >= 120]) / len(df_filtered) * 100)
-        
-        c1.metric("Ventas Totales (Base)", f"${total_ventas:,.0f}")
-        c2.metric("Ticket Promedio", f"${ticket_prom:,.0f}")
-        c3.metric("Clientes Activos (<120d)", f"{activos:,}")
-        c4.metric("Tasa de Fuga", f"{tasa_fuga:.1f}%")
-        
-        st.markdown("---")
         
         # Graficos Tendencia y Mapa
         col_trend, col_map = st.columns(2)
