@@ -33,32 +33,43 @@ def generate_dashboard():
     # Trend
     if not df_trend.empty:
         fig_trend = px.line(df_trend, x='Mes', y='Ventas', title="Evolución Mensual 2023", markers=True)
-        div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn', config={'responsive': True})
+        div_trend = pio.to_html(fig_trend, full_html=False, include_plotlyjs='cdn', config={'responsive': True, 'displayModeBar': False})
     else: div_trend = "No data"
     
     # Map
     if not df_zone.empty:
         top_cities = df_zone.sort_values('VentaSinIVA', ascending=False).head(10)
         fig_map = px.bar(top_cities, x='VentaSinIVA', y='Ciudad', orientation='h', title="Top 10 Ciudades")
-        div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False, config={'responsive': True})
+        div_map = pio.to_html(fig_map, full_html=False, include_plotlyjs=False, config={'responsive': True, 'displayModeBar': False})
     else: div_map = "No data"
     
     # Linea (New)
     if not df_linea.empty:
         top_linea = df_linea.head(10)
         fig_linea = px.bar(top_linea, x='Linea', y='VentaSinIVA', title="Ventas por Categoría (Top 10)")
-        div_linea = pio.to_html(fig_linea, full_html=False, include_plotlyjs=False, config={'responsive': True})
+        div_linea = pio.to_html(fig_linea, full_html=False, include_plotlyjs=False, config={'responsive': True, 'displayModeBar': False})
     else: div_linea = "No data"
 
     # TAB 2: SEGMENTATION (Scatter + Donut + Table)
     df_viz = df[df['Monetary'] < df['Monetary'].quantile(0.999)].copy()
-    fig_scatter = px.scatter(df_viz, x="Recency", y="Monetary", color="Cluster", hover_data=["FkCliente"], title="Gráfico de Dispersión (Recencia vs Monto)", height=500)
+    fig_scatter = px.scatter(
+        df_viz, x="Recency", y="Monetary", color="Cluster",
+        hover_data=["FkCliente"],
+        title="Gráfico de Dispersión (Recencia vs Monto)",
+        height=500
+    )
+    fig_scatter.update_layout(autosize=True, margin=dict(l=10, r=10, t=60, b=10))
     div_scatter = pio.to_html(fig_scatter, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
     cnt = df["Cluster"].value_counts().reset_index()
     cnt.columns = ["Cluster", "Cnt"]
     fig_donut = px.pie(cnt, names="Cluster", values="Cnt", hole=0.4, title="Distribución por Cluster")
-    fig_donut.update_layout(legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
+    fig_donut.update_layout(
+        autosize=True,
+        height=500,
+        margin=dict(l=10, r=10, t=60, b=10),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)
+    )
     div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
     # Table (General)
@@ -88,13 +99,47 @@ def generate_dashboard():
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
         <style>
-            body {{ background-color: #f8f9fa; padding-top: 20px; overflow-x: hidden; }} /* Fix Overflow */
-            .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }}
-            .kpi-card {{ text-align: center; padding: 15px; background: white; border-radius: 8px; border-left: 5px solid #3498db; }}
-            .kpi-value {{ font-size: 1.8em; font-weight: bold; color: #2c3e50; }}
-            .kpi-label {{ color: #7f8c8d; font-size: 0.9em; }}
+            body { background-color: #f8f9fa; padding-top: 20px; overflow-x: hidden; }
+
+            .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+
+            /* Plotly: forzar que nunca sobrepase el contenedor */
+            .plotly-graph-div { width: 100% !important; max-width: 100% !important; }
+
+            /* Evita que una columna empuje a la otra por overflow */
+            .tab-content { overflow-x: hidden; }
+
+            /* TABLA: fija columnas y evita header corrido */
+            .table-responsive { overflow-x: auto; }
+            table { width: 100%; table-layout: fixed; }
+            th, td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         </style>
     </head>
+        <script>
+            function resizeAllPlotly() {
+                const graphs = document.querySelectorAll('.plotly-graph-div');
+                graphs.forEach(g => {
+                if (window.Plotly) {
+                    try { Plotly.Plots.resize(g); } catch(e) {}
+                }
+                });
+            }
+
+            // Bootstrap: cuando un tab se muestra, reajusta Plotly
+            document.addEventListener('shown.bs.tab', function (event) {
+                setTimeout(resizeAllPlotly, 150);
+            });
+
+            // También al cargar la página
+            window.addEventListener('load', function () {
+                setTimeout(resizeAllPlotly, 300);
+            });
+
+            // Y al cambiar tamaño de ventana
+            window.addEventListener('resize', function () {
+                setTimeout(resizeAllPlotly, 100);
+            });
+        </script>
     <body>
         <div class="container-fluid px-4"> <!-- Wider Container -->
             <h1 class="mb-4 text-center">📊 Tablero de Control - Studio F</h1>
@@ -117,7 +162,7 @@ def generate_dashboard():
             <div class="tab-content border border-top-0 p-3 bg-white" id="myTabContent">
                 
                 <!-- TAB 1: OVERVIEW -->
-                <div class="tab-pane fade show active" id="tab1">
+                <div class="tab-pane fade show active" id="tab1" role="tabpanel" aria-labelledby="tab1-tab">
                     <div class="row">
                         <div class="col-12">
                             <div class="card p-2">{div_trend}</div>
@@ -130,7 +175,7 @@ def generate_dashboard():
                 </div>
                 
                 <!-- TAB 2: SEGMENTATION -->
-                <div class="tab-pane fade" id="tab2">
+                <div class="tab-pane fade" id="tab2" role="tabpanel" aria-labelledby="tab2-tab">
                     <div class="row">
                         <!-- Scatter más ancho -->
                         <div class="col-lg-8">
@@ -162,7 +207,7 @@ def generate_dashboard():
                 </div>
                 
                 <!-- TAB 3: ALERTS -->
-                <div class="tab-pane fade" id="tab3">
+                <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
                     <div class="row">
                         <div class="col-md-6">
                             <h5 class="text-danger">🚨 Semáforo de Fuga (Top 20 > 90 días)</h5>
