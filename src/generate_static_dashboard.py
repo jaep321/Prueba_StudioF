@@ -98,48 +98,53 @@ def generate_dashboard():
         <title>Dashboard Studio F</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <style>
-            body { background-color: #f8f9fa; padding-top: 20px; overflow-x: hidden; }
+            body {{ background-color: #f8f9fa; padding-top: 20px; overflow-x: hidden; }}
 
-            .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+            .card {{ margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }}
 
             /* Plotly: forzar que nunca sobrepase el contenedor */
-            .plotly-graph-div { width: 100% !important; max-width: 100% !important; }
+            .plotly-graph-div {{ width: 100% !important; max-width: 100% !important; }}
 
             /* Evita que una columna empuje a la otra por overflow */
-            .tab-content { overflow-x: hidden; }
+            .tab-content {{ overflow-x: hidden; }}
 
             /* TABLA: fija columnas y evita header corrido */
-            .table-responsive { overflow-x: auto; }
-            table { width: 100%; table-layout: fixed; }
-            th, td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .table-responsive {{ overflow-x: auto; }}
+            table {{ width: 100%; table-layout: fixed; }}
+            th, td {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+            
+            .kpi-card {{ text-align: center; padding: 15px; background: white; border-radius: 8px; border-left: 5px solid #3498db; }}
+            .kpi-value {{ font-size: 1.8em; font-weight: bold; color: #2c3e50; }}
+            .kpi-label {{ color: #7f8c8d; font-size: 0.9em; }}
         </style>
-    </head>
         <script>
-            function resizeAllPlotly() {
+            function resizeAllPlotly() {{
                 const graphs = document.querySelectorAll('.plotly-graph-div');
-                graphs.forEach(g => {
-                if (window.Plotly) {
-                    try { Plotly.Plots.resize(g); } catch(e) {}
-                }
-                });
-            }
+                graphs.forEach(g => {{
+                    if (window.Plotly) {{
+                        try {{ Plotly.Plots.resize(g); }} catch(e) {{}}
+                    }}
+                }});
+            }}
 
             // Bootstrap: cuando un tab se muestra, reajusta Plotly
-            document.addEventListener('shown.bs.tab', function (event) {
+            document.addEventListener('shown.bs.tab', function (event) {{
                 setTimeout(resizeAllPlotly, 150);
-            });
+            }});
 
             // También al cargar la página
-            window.addEventListener('load', function () {
+            window.addEventListener('load', function () {{
                 setTimeout(resizeAllPlotly, 300);
-            });
+            }});
 
             // Y al cambiar tamaño de ventana
-            window.addEventListener('resize', function () {
+            window.addEventListener('resize', function () {{
                 setTimeout(resizeAllPlotly, 100);
-            });
+            }});
         </script>
+    </head>
     <body>
         <div class="container-fluid px-4"> <!-- Wider Container -->
             <h1 class="mb-4 text-center">📊 Tablero de Control - Studio F</h1>
