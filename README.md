@@ -140,11 +140,11 @@ Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit pa
 
 ### 🌐 Ver Dashboard Online (GitHub Pages)
 
-Si ha activado GitHub Pages en este repositorio, puede ver el tablero interactivo directamente aquí:
+**No es posible** incrustar la interactividad directamente aquí (GitHub bloquea los scripts por seguridad), pero puedes ver una vista previa abajo. **Haz clic en la imagen** para abrir la versión interactiva completa:
 
-👉 **[Ver Dashboard En Vivo](https://jaep321.github.io/Prueba_StudioF/)**
+[![Ver Dashboard Interactivo](images/scatter_rfm.png)](https://jaep321.github.io/Prueba_StudioF/)
 
-*(Para activar: Ir a Settings > Pages > Source: Deploy from a branch > Select `/docs` folder)*
+*(Para activar funcionalidad: Ir a Settings > Pages > Source: Deploy from a branch > Select `/docs` folder)*
 
 ### 🖥️ Ejecutar localmente (Streamlit)
 Si prefiere correr la versión de Python localmente:
