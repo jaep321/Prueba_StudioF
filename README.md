@@ -21,21 +21,55 @@ A continuación se presenta la respuesta detallada a cada uno de los puntos soli
 
 | Variable | Tipo de Dato | Descripción | Transformación Sugerida |
 |----------|--------------|-------------|-------------------------|
-| `FkCliente` | Numérico | Identificador único del cliente. | Ninguna (Llave primaria). |
-| `Tipo` | Texto | Tipo de cliente. | Estandarización. |
-| `Genero` | Texto | Género del cliente. | **Normalización:** CodGenero 0 corresponde a vacíos -> 'No Informado'. |
-| `Fecha_Nacimiento` | Fecha | Fecha de nacimiento. | Cálculo de `Edad`. |
+| `FkCliente` | Numérico (Entero) | Identificador único del cliente. | Ninguna (Llave primaria). |
+| `Tipo` | Texto | Tipo de cliente (ej. Cliente Compartido). | Estandarización si hay variantes. |
+| `CodTipoIdentificacion` | Numérico | Código del tipo de documento. | - |
+| `TipoIdentificacion` | Texto | Descripción del tipo de documento (CC, CE). | - |
+| `CodGenero` | Numérico | Código del género. | - |
+| `Genero` | Texto | Género del cliente (F, M, N). | Normalización: CodGenero 0 corresponde a vacíos. Clasificar como 'No Informado'. |
+| `Fecha_Nacimiento` | Fecha | Fecha de nacimiento. | Cálculo de `Edad`. Validar fechas futuras o nulas. |
+| `Fecha_Ingreso` | Fecha | Fecha de registro del cliente. | Cálculo de `Antigüedad`. |
+| `CodMarcaFavorita` | Numérico | Código de la marca favorita. | - |
+| `CodMedioPagoFavorito` | Numérico | Código medio de pago favorito. | Medio de pago favorito con el que pago el cliente. |
+| `MedioPagoFavorito` | Texto | Descripción medio pago favorito. | Medio de pago favorito con el que pago el cliente. |
+| `CodFranquiciaFavorita` | Numérico | Código franquicia favorita. | Franquicia de la tarjeta debito/crédito. |
+| `FranquiciaFavorita` | Texto | Descripción franquicia favorita. | Franquicia de la tarjeta debito/crédito. |
+| `Fecha_Actualizacion` | Fecha | Última actualización de datos. | Recencia de contacto. |
+| `CodMedioActualizacion` | Numérico | Código del medio de actualización. | - |
+| `MedioActualizacion` | Texto | Descripción del medio de actualización. | - |
+| `CodEstado` | Numérico | Código del estado. | - |
+| `Estado` | Texto | Estado del cliente (Activo/Inactivo). | Filtro para campañas (Solo Activos). |
+| `CIIU_Actividad_economica` | Numérico | Actividad económica (f200_id_ciiu). | Clasificación sectorial. |
 
-*(Ver documentación completa en `output/Reporte_Tecnico.md`)*
+### BD_Transaccional (Histórico Transaccional)
 
-### BD_Transaccional (Histórico)
-
-| Variable | Tipo de Dato | Descripción | Transformación |
-|----------|--------------|-------------|----------------|
-| `FkCliente` | Numérico | Llave foránea. | Cruce con tabla clientes. |
-| `FechaCalendario` | Fecha | Fecha de compra. | Cálculo de **Recencia**. |
-| `VentaSinIVA` | Numérico | Monto de venta. | Suma para **Monto (Monetary)**. |
-| `Linea` | Texto | Categoría (Jean, Blusa). | Cálculo de Preferencias. |
+| Variable | Tipo de Dato | Descripción | Transformación Sugerida |
+|----------|--------------|-------------|-------------------------|
+| `FkCliente` | Numérico | Llave foránea del cliente. | Cruce con BD_Clientes. |
+| `FechaCalendario` | Fecha | Fecha de la transacción. | Extracción de Año, Mes, DíaSemana. Cálculo de `Recencia`. |
+| `FkTiempo` | Numérico | Llave de tiempo (YYYYMMDD). | Redundante con FechaCalendario. |
+| `FkProducto` | Numérico | Identificador del producto. | - |
+| `FkMarca` | Numérico | Identificador de la marca. | - |
+| `FkTipoEstablecimiento` | Numérico | Identificador del tipo de establecimiento. | - |
+| `FkCategoria` | Numérico | Identificador de la categoría. | - |
+| `NumDocumento` | Texto | Identificador de la factura/ticket. | Conteo para `Frecuencia`. |
+| `Cantidad` | Numérico | Unidades compradas. | Suma total de items. |
+| `VentaSinIVA` | Numérico | Monto de la venta (sin impuesto). | Suma para `Monto`. Manejo de devoluciones. |
+| `CodDepartamento` | Numérico | Código del departamento. | - |
+| `Departamento` | Texto | Nombre del departamento geográfico. | Análisis geográfico. |
+| `CodCiudad` | Numérico | Código de la ciudad. | - |
+| `Ciudad` | Texto | Nombre de la ciudad. | - |
+| `Zona` | Texto | Zona geográfica comercial. | - |
+| `NkTienda` | Numérico | Identificador de la tienda. | - |
+| `Tipo` | Texto | Tipo de tienda/marca (ej. Ela). | - |
+| `FechaAperturaTienda` | Fecha | Fecha de apertura de la tienda. | (Variable listada en requerimientos pero no hallada en dataset). |
+| `TipoEstablecimiento` | Texto | Canal de venta (Tienda, Ecomm, Bodega). | Preferencia de Canal. |
+| `NkFamilia` | Numérico | Identificador de familia de producto. | - |
+| `NkLinea` | Numérico | Identificador de línea de producto. | - |
+| `Familia` | Texto | Familia de producto (ej. Superiores). | - |
+| `Linea` | Texto | Línea de producto (ej. Blusa, Jean). | Cálculo de Preferencias (% de gasto por línea). |
+| `TipoProduccion` | Texto | Origen (Producido/No Producido). | - |
+| `DescripcionMarca` | Texto | Descripción de la marca. | Preferencia de Marca. |
 
 ---
 
