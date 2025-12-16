@@ -107,11 +107,11 @@ st.markdown("---")
 # -------------------------
 # Tabs
 # -------------------------
-tab1, tab2, tab3 = st.tabs(["1. Visión General", "2. Segmentación de Clientes", "3. Alertas y Riesgo"])
+tab1, tab2, tab3 = st.tabs(["1. Datos Generales", "2. Segmentación de Clientes", "3. Alertas y Riesgo"])
 
 # --- TAB 1 ---
 with tab1:
-    st.header("Visión General")
+    st.header("Datos Generales")
 
     st.subheader("Tendencia de Ventas (2023)")
     if df_trend is not None:
