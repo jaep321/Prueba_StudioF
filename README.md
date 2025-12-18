@@ -3,10 +3,6 @@
 Este repositorio contiene la **Solución Completa** a la prueba técnica para el cargo de Analista de Datos BI.
 A continuación se presenta la respuesta detallada a cada uno de los puntos solicitados en el documento `Prueba_tecnica_clientes.docx`.
 
-## Tablero HTML (opcional)
-
-[![Tablero HTML](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
-
 ## 📋 Estructura de la Solución
 
 1.  [Entendimiento de la Información](#1-entendimiento-de-la-información)
@@ -181,6 +177,10 @@ Se define un cliente en riesgo de fuga si su inactividad supera los **120 días*
 ## 5. Tablero de Control (Propuesta Power BI)
 
 El tablero se diseñaría con 3 páginas principales. Adicionalmente, se generó un **prototipo HTML** con Python para visualizar rápidamente los resultados.
+
+**Ver tablero HTML completo:** haga clic en la imagen para abrir el tablero interactivo.
+
+[![Tablero HTML](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
 
 ### Página 1: Visión General (Overview)
 *   **KPIs:** Ventas Totales, Ticket Promedio, Clientes Activos (Recencia < 120), Tasa de Fuga.
