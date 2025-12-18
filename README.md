@@ -1,221 +1,213 @@
-# Prueba T?cnica - Analista de Datos BI
+# Prueba Técnica - Analista de Datos BI
 
-Este repositorio contiene la **Soluci?n Completa** a la prueba t?cnica para el cargo de Analista de Datos BI.
-A continuaci?n se presenta la respuesta detallada a cada uno de los puntos solicitados en el documento `Prueba_tecnica_clientes.docx`.
+Este repositorio contiene la **Solución Completa** a la prueba técnica para el cargo de Analista de Datos BI.
+A continuación se presenta la respuesta detallada a cada uno de los puntos solicitados en el documento `Prueba_tecnica_clientes.docx`.
 
 ## Tablero HTML (opcional)
 
 [![Tablero HTML](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
 
-## ?? Estructura de la Soluci?n
+## 📋 Estructura de la Solución
 
-1.  [Entendimiento de la Informaci?n](#1-entendimiento-de-la-informaci?n)
-2.  [Identificaci?n de Variables](#2-identificaci?n-de-variables-para-el-modelo-de-segmentaci?n)
-3.  [Segmentaci?n de Clientes (K-Means)](#3-segmentaci?n-con-metodolog?a-estad?stica)
-4.  [Se?ales de Fuga](#4-generaci?n-de-se?ales-de-fuga-de-clientes)
-5.  [Tablero de Control](#5-tablero-de-control-html--power-bi)
+1.  [Entendimiento de la Información](#1-entendimiento-de-la-información)
+2.  [Identificación de Variables](#2-identificación-de-variables-para-el-modelo-de-segmentación)
+3.  [Segmentación de Clientes (K-Means)](#3-segmentación-con-metodología-estadística-k-means)
+4.  [Señales de Fuga](#4-generación-de-señales-de-fuga-de-clientes)
+5.  [Tablero de Control](#5-tablero-de-control-propuesta-power-bi)
 
 ---
 
-## 1. Entendimiento de la Informaci?n
+# Prueba Técnica Analista de Datos BI - Análisis de Clientes
 
-**Objetivo:** Descripci?n detallada de las variables insumo (`BD_Clientes` y `BD_Transaccional`).
+**Fecha:** 16 de Diciembre de 2025  
+**Elaborado por:** [Su Nombre / Asistente AI]
+
+---
+
+## 1. Entendimiento de la Información
+
+A continuación se describe el diccionario de datos de las variables identificadas en la base de datos `BD_Clientes` y `BD_Transaccional`.
 
 ### BD_Clientes (Maestra de Clientes)
 
-| Variable | Tipo de Dato | Descripci?n | Transformaci?n Sugerida |
+| Variable | Tipo de Dato | Descripción | Transformación Sugerida |
 |----------|--------------|-------------|-------------------------|
-| `FkCliente` | Num?rico (Entero) | Identificador ?nico del cliente. | Ninguna (Llave primaria). |
-| `Tipo` | Texto | Tipo de cliente (ej. Cliente Compartido). | Estandarizaci?n si hay variantes. |
-| `CodTipoIdentificacion` | Num?rico | C?digo del tipo de documento. | - |
-| `TipoIdentificacion` | Texto | Descripci?n del tipo de documento (CC, CE). | - |
-| `CodGenero` | Num?rico | C?digo del g?nero. | - |
-| `Genero` | Texto | G?nero del cliente (F, M, N). | Normalizaci?n: CodGenero 0 corresponde a vac?os. Clasificar como 'No Informado'. |
-| `Fecha_Nacimiento` | Fecha | Fecha de nacimiento. | C?lculo de `Edad`. Validar fechas futuras o nulas. |
-| `Fecha_Ingreso` | Fecha | Fecha de registro del cliente. | C?lculo de `Antig?edad`. |
-| `CodMarcaFavorita` | Num?rico | C?digo de la marca favorita. | - |
-| `CodMedioPagoFavorito` | Num?rico | C?digo medio de pago favorito. | Medio de pago favorito con el que pago el cliente. |
-| `MedioPagoFavorito` | Texto | Descripci?n medio pago favorito. | Medio de pago favorito con el que pago el cliente. |
-| `CodFranquiciaFavorita` | Num?rico | C?digo franquicia favorita. | Franquicia de la tarjeta debito/cr?dito. |
-| `FranquiciaFavorita` | Texto | Descripci?n franquicia favorita. | Franquicia de la tarjeta debito/cr?dito. |
-| `Fecha_Actualizacion` | Fecha | ?ltima actualizaci?n de datos. | Recencia de contacto. |
-| `CodMedioActualizacion` | Num?rico | C?digo del medio de actualizaci?n. | - |
-| `MedioActualizacion` | Texto | Descripci?n del medio de actualizaci?n. | - |
-| `CodEstado` | Num?rico | C?digo del estado. | - |
-| `Estado` | Texto | Estado del cliente (Activo/Inactivo). | Filtro para campa?as (Solo Activos). |
-| `CIIU_Actividad_economica` | Num?rico | Actividad econ?mica (f200_id_ciiu). | Clasificaci?n sectorial. |
+| `FkCliente` | Numérico (Entero) | Identificador único del cliente. | Ninguna (Llave primaria). |
+| `Tipo` | Texto | Tipo de cliente (ej. Cliente Compartido). | Estandarización si hay variantes. |
+| `CodTipoIdentificacion` | Numérico | Código del tipo de documento. | - |
+| `TipoIdentificacion` | Texto | Descripción del tipo de documento (CC, CE). | - |
+| `CodGenero` | Numérico | Código del género. | - |
+| `Genero` | Texto | Género del cliente (F, M, N). | Normalización: CodGenero 0 corresponde a vacíos. Clasificar como 'No Informado'. |
+| `Fecha_Nacimiento` | Fecha | Fecha de nacimiento. | Cálculo de `Edad`. Validar fechas futuras o nulas. |
+| `Fecha_Ingreso` | Fecha | Fecha de registro del cliente. | Cálculo de `Antigüedad`. |
+| `CodMarcaFavorita` | Numérico | Código de la marca favorita. | - |
+| `CodMedioPagoFavorito` | Numérico | Código medio de pago favorito. | Medio de pago favorito con el que pago el cliente. |
+| `MedioPagoFavorito` | Texto | Descripción medio pago favorito. | Medio de pago favorito con el que pago el cliente. |
+| `CodFranquiciaFavorita` | Numérico | Código franquicia favorita. | Franquicia de la tarjeta debito/crédito. |
+| `FranquiciaFavorita` | Texto | Descripción franquicia favorita. | Franquicia de la tarjeta debito/crédito. |
+| `Fecha_Actualizacion` | Fecha | Última actualización de datos. | Recencia de contacto. |
+| `CodMedioActualizacion` | Numérico | Código del medio de actualización. | - |
+| `MedioActualizacion` | Texto | Descripción del medio de actualización. | - |
+| `CodEstado` | Numérico | Código del estado. | - |
+| `Estado` | Texto | Estado del cliente (Activo/Inactivo). | Filtro para campañas (Solo Activos). |
+| `CIIU_Actividad_economica` | Numérico | Actividad económica (f200_id_ciiu). | Clasificación sectorial. |
 
-**Campos esperados seg?n el documento (validar existencia en la base):**
+**Campos esperados según el documento (validar existencia en la base):**
 
-| Variable | Tipo de Dato | Descripci?n | Transformaci?n Sugerida |
+| Variable | Tipo de Dato | Descripción | Transformación Sugerida |
 |----------|--------------|-------------|-------------------------|
-| `CodDepartamento` | Num?rico | C?digo del departamento del cliente. | Cruce geogr?fico. |
+| `CodDepartamento` | Numérico | Código del departamento del cliente. | Cruce geográfico. |
 | `Departamento` | Texto | Nombre del departamento. | Limpieza de nombres. |
-| `CodCiudad` | Num?rico | C?digo de la ciudad del cliente. | Cruce geogr?fico. |
+| `CodCiudad` | Numérico | Código de la ciudad del cliente. | Cruce geográfico. |
 | `Ciudad` | Texto | Nombre de la ciudad. | Limpieza de nombres. |
-| `Zona` | Texto | Zona geogr?fica comercial. | An?lisis de cobertura. |
-| `NkTienda` | Num?rico | Tienda preferida/frecuente. | Identificaci?n de tienda ancla. |
+| `Zona` | Texto | Zona geográfica comercial. | Análisis de cobertura. |
+| `NkTienda` | Numérico | Tienda preferida/frecuente. | Identificación de tienda ancla. |
 
-### BD_Transaccional (Hist?rico Transaccional)
+### BD_Transaccional (Histórico Transaccional)
 
-| Variable | Tipo de Dato | Descripci?n | Transformaci?n Sugerida |
+| Variable | Tipo de Dato | Descripción | Transformación Sugerida |
 |----------|--------------|-------------|-------------------------|
-| `FkCliente` | Num?rico | Llave for?nea del cliente. | Cruce con BD_Clientes. |
-| `FechaCalendario` | Fecha | Fecha de la transacci?n. | Extracci?n de A?o, Mes, D?aSemana. C?lculo de `Recencia`. |
-| `FkTiempo` | Num?rico | Llave de tiempo (YYYYMMDD). | Redundante con FechaCalendario. |
-| `FkProducto` | Num?rico | Identificador del producto. | - |
-| `FkMarca` | Num?rico | Identificador de la marca. | - |
-| `FkTipoEstablecimiento` | Num?rico | Identificador del tipo de establecimiento. | - |
-| `FkCategoria` | Num?rico | Identificador de la categor?a. | - |
+| `FkCliente` | Numérico | Llave foránea del cliente. | Cruce con BD_Clientes. |
+| `FechaCalendario` | Fecha | Fecha de la transacción. | Extracción de Año, Mes, DíaSemana. Cálculo de `Recencia`. |
+| `FkTiempo` | Numérico | Llave de tiempo (YYYYMMDD). | Redundante con FechaCalendario. |
+| `FkProducto` | Numérico | Identificador del producto. | - |
+| `FkMarca` | Numérico | Identificador de la marca. | - |
+| `FkTipoEstablecimiento` | Numérico | Identificador del tipo de establecimiento. | - |
+| `FkCategoria` | Numérico | Identificador de la categoría. | - |
 | `NumDocumento` | Texto | Identificador de la factura/ticket. | Conteo para `Frecuencia`. |
-| `Cantidad` | Num?rico | Unidades compradas. | Suma total de items. |
-| `VentaSinIVA` | Num?rico | Monto de la venta (sin impuesto). | Suma para `Monto`. Manejo de devoluciones. |
-| `CodDepartamento` | Num?rico | C?digo del departamento. | - |
-| `Departamento` | Texto | Nombre del departamento geogr?fico. | An?lisis geogr?fico. |
-| `CodCiudad` | Num?rico | C?digo de la ciudad. | - |
+| `Cantidad` | Numérico | Unidades compradas. | Suma total de items. |
+| `VentaSinIVA` | Numérico | Monto de la venta (sin impuesto). | Suma para `Monto`. Manejo de devoluciones. |
+| `CodDepartamento` | Numérico | Código del departamento. | - |
+| `Departamento` | Texto | Nombre del departamento geográfico. | Análisis geográfico. |
+| `CodCiudad` | Numérico | Código de la ciudad. | - |
 | `Ciudad` | Texto | Nombre de la ciudad. | - |
-| `Zona` | Texto | Zona geogr?fica comercial. | - |
-| `NkTienda` | Num?rico | Identificador de la tienda. | - |
+| `Zona` | Texto | Zona geográfica comercial. | - |
+| `NkTienda` | Numérico | Identificador de la tienda. | - |
 | `Tipo` | Texto | Tipo de tienda/marca (ej. Ela). | - |
 | `FechaAperturaTienda` | Fecha | Fecha de apertura de la tienda. | (Variable listada en requerimientos pero no hallada en dataset). |
 | `TipoEstablecimiento` | Texto | Canal de venta (Tienda, Ecomm, Bodega). | Preferencia de Canal. |
-| `NkFamilia` | Num?rico | Identificador de familia de producto. | - |
-| `NkLinea` | Num?rico | Identificador de l?nea de producto. | - |
+| `NkFamilia` | Numérico | Identificador de familia de producto. | - |
+| `NkLinea` | Numérico | Identificador de línea de producto. | - |
 | `Familia` | Texto | Familia de producto (ej. Superiores). | - |
-| `Linea` | Texto | L?nea de producto (ej. Blusa, Jean). | C?lculo de Preferencias (% de gasto por l?nea). |
+| `Linea` | Texto | Línea de producto (ej. Blusa, Jean). | Cálculo de Preferencias (% de gasto por línea). |
 | `TipoProduccion` | Texto | Origen (Producido/No Producido). | - |
-| `DescripcionMarca` | Texto | Descripci?n de la marca. | Preferencia de Marca. |
+| `DescripcionMarca` | Texto | Descripción de la marca. | Preferencia de Marca. |
 
 ---
 
-## 2. Identificaci?n de Variables para el Modelo de Segmentaci?n
+## 2. Identificación de Variables para el Modelo de Segmentación
 
-Para el modelo de segmentaci?n y riesgo (fuga), se construyeron las siguientes variables clave:
+Para segmentar los clientes con enfoque en comportamiento de compra y riesgo (fuga), se seleccionaron las siguientes variables derivadas (RFM + Preferencias):
 
-1.  **Recencia (Recency):** D?as desde la ?ltima compra. (Clave para Fuga).
-2.  **Frecuencia (Frequency):** N?mero de facturas ?nicas.
-3.  **Monto (Monetary):** Total vendido sin IVA.
-4.  **Preferencia de Canal:** % de compras en Tienda vs Bodega vs Virtual.
-5.  **Preferencia de L?nea (Top 10 + Otras):** % de gasto por l?neas con mayor venta.
-6.  **Preferencia de Familia:** % de gasto por familia (Superiores, Inferiores, Monopieza, etc.).
-7.  **Preferencia de Marca:** % de gasto por `DescripcionMarca`.
+1.  **Recencia (Recency):** Días transcurridos desde la última compra hasta la fecha de corte (31-Dic-2023). Clientes con alta recencia tienen mayor riesgo de fuga.
+2.  **Frecuencia (Frequency):** Cantidad de transacciones únicas (`NumDocumento`) en el periodo. Mide la fidelidad.
+3.  **Monto (Monetary):** Suma total de `VentaSinIVA`. Mide el valor del cliente (CLV histórico).
+4.  **Preferencia de Canal:** Proporción de compras en `Tienda` vs otros canales (ej. Outlet/Bodega).
+5.  **Preferencia de Línea (Top 10 + Otras):** Proporción de gasto en las líneas con mayor venta y un grupo residual.
+6.  **Preferencia de Familia:** Participación del gasto por familia (Superiores, Inferiores, Monopieza, etc.).
+7.  **Preferencia de Marca:** Participación del gasto por `DescripcionMarca`.
 
-**Factores expl?citos solicitados (productos y canales):**
-*   **Producto/Servicio:** participaci?n del gasto por `Familia`, `Linea` (Top 10 + Otras) y `DescripcionMarca`.
-*   **Canal de distribuci?n:** `TipoEstablecimiento` y `Tipo`.
+**Factores explícitos solicitados por la prueba (productos y canales):**
+*   **Producto/Servicio:** participación del gasto por `Familia`, `Linea` (Top 10 + Otras) y `DescripcionMarca`.
+*   **Canal de distribución:** `TipoEstablecimiento` y `Tipo` (tienda física, bodega/outlet, e-commerce).
 
 **Variables adicionales de enriquecimiento (si existen en la fuente):**
-*   **Geograf?a:** `Ciudad`, `Departamento`, `Zona`.
-*   **Tienda ancla:** `NkTienda`.
+*   **Geografía:** `Ciudad`, `Departamento`, `Zona` para clusters regionales.
+*   **Tienda ancla:** `NkTienda` para segmentar por fidelidad a tienda.
 
 **Nota sobre Lavado de Activos:**
-Se incluyen variables de *Monto Total* y *Frecuencia* excesiva. Se detect? un cliente con monto an?malo (?$445 Millones) que se marca como alerta prioritaria.
+Se incluyen variables de *Monto Total* y *Frecuencia* excesiva. En el análisis se detectó un cliente (Cluster 2) con un monto de inversión anómalo (≈445 Millones vs promedio de 500k), lo cual es una señal de alerta prioritaria para prevención de fraude/lavado de activos.
 
 ---
 
-## 3. Segmentaci?n con Metodolog?a Estad?stica
+## 3. Segmentación con Metodología Estadística (K-Means)
 
-### Justificaci?n Metodol?gica
-Para este an?lisis se seleccion? el **Aprendizaje No Supervisado (Clustering)**, espec?ficamente el algoritmo **K-Means**, basado en el modelo **RFM (Recencia, Frecuencia, Valor Monetario)**.
+### Justificación Metodológica
+Para este análisis se seleccionó el **Aprendizaje No Supervisado (Clustering)**, específicamente el algoritmo **K-Means**, basado en el modelo **RFM (Recencia, Frecuencia, Valor Monetario)**.
 
-**?Por qu? se escogi? este m?todo?**
+**¿Por qué se escogió este método?**
 
-1.  **Naturaleza de los Datos (Sin Etiquetas):** Los datos proporcionados son puramente transaccionales y **no cuentan con una etiqueta previa** (ej. "Cliente VIP", "Cliente Riesgoso"). Por lo tanto, los modelos predictivos supervisados (como ?rboles de decisi?n o regresi?n log?stica) no son aplicables en esta fase inicial, ya que requieren un hist?rico clasificado para entrenar.
-2.  **Modelo RFM:** Es el est?ndar de la industria en retail para evaluar el valor del cliente. Permite agrupar objetivamente a los usuarios bas?ndose en hechos (lo que hicieron) en lugar de suposiciones demogr?ficas.
-3.  **Objetividad del Algoritmo:** K-Means permite descubrir patrones ocultos y agrupar clientes por similitud matem?tica en su comportamiento de compra, eliminando el sesgo humano en la clasificaci?n.
+1.  **Naturaleza de los Datos (Sin Etiquetas):** Los datos proporcionados son puramente transaccionales y **no cuentan con una etiqueta previa** (ej. "Cliente VIP", "Cliente Riesgoso"). Por lo tanto, los modelos predictivos supervisados (como árboles de decisión o regresión logística) no son aplicables en esta fase inicial, ya que requieren un histórico clasificado para entrenar.
+2.  **Modelo RFM:** Es el estándar de la industria en retail para evaluar el valor del cliente. Permite agrupar objetivamente a los usuarios basándose en hechos (lo que hicieron) en lugar de suposiciones demográficas.
+3.  **Objetividad del Algoritmo:** K-Means permite descubrir patrones ocultos y agrupar clientes por similitud matemática en su comportamiento de compra, eliminando el sesgo humano en la clasificación.
 
-### Resultados del Modelo
-Se utiliz? **K-Means Clustering** sobre las variables normalizadas (**RFM + producto + canal**). Se hallaron **4 segmentos** con los siguientes perfiles:
 
-*   **Cluster 1: Compradores Base (57.5% de la poblaci?n)**
-    *   **Caracter?sticas:** Recencia promedio 64 d?as. Frecuencia 3.34. Gasto promedio $616k.
-    *   **Canal:** Tienda f?sica ~97%, virtual ~3%.
-    *   **Preferencia:** L?neas Blusa (34%) y Jean (24%). Familias Superiores (51%) e Inferiores (37%).
-    *   **Acci?n:** Programa de fidelizaci?n est?ndar y combos Blusa + Jean.
+Se utilizó el algoritmo **K-Means Clustering** después de normalizar las variables (StandardScaler). El modelo incluye **RFM + participación por Línea (Top 10 + Otras) + Familia + Marca + Canal**. Se identificaron **4 Segmentos** principales:
 
-*   **Cluster 0: Complementos/Calzado/Tercera Pieza (34.8% de la poblaci?n)**
-    *   **Caracter?sticas:** Recencia 69 d?as. Frecuencia 3.18. Gasto promedio $558k.
-    *   **Canal:** Tienda f?sica ~95%, virtual ~5%.
-    *   **Preferencia:** L?nea Otras (68%), Tenis (7%), Chaqueta (7%). Familias Tercera Pieza (23%), Calzado (19%), Complementos (18%).
-    *   **Acci?n:** Campa?as de complementos y calzado con bundles.
+### Perfil de los Segmentos
 
-*   **Cluster 3: Monopieza/Vestidos (7.6% de la poblaci?n)**
-    *   **Caracter?sticas:** Recencia 69 d?as. Frecuencia 2.11. Gasto promedio $372k.
-    *   **Canal:** Tienda f?sica ~96%, virtual ~4%.
-    *   **Preferencia:** L?nea Vestido (51%) y Enterizo (21%). Familia Monopieza (75%).
-    *   **Acci?n:** Promociones de temporada (vestidos/enterizos) y cross-selling de accesorios.
+*   **Cluster 1: Compradores Base (57.5% de la población)**
+    *   **Características:** Recencia promedio 64 días. Frecuencia 3.34. Gasto promedio $616k.
+    *   **Canal:** Tienda física ~97%, virtual ~3%.
+    *   **Preferencia:** Líneas Blusa (34%) y Jean (24%). Familias Superiores (51%) e Inferiores (37%).
+    *   **Acción:** Programa de fidelización estándar y combos Blusa + Jean.
+
+*   **Cluster 0: Complementos/Calzado/Tercera Pieza (34.8% de la población)**
+    *   **Características:** Recencia 69 días. Frecuencia 3.18. Gasto promedio $558k.
+    *   **Canal:** Tienda física ~95%, virtual ~5%.
+    *   **Preferencia:** Línea Otras (68%), Tenis (7%), Chaqueta (7%). Familias Tercera Pieza (23%), Calzado (19%), Complementos (18%).
+    *   **Acción:** Campañas de complementos y calzado con bundles.
+
+*   **Cluster 3: Monopieza/Vestidos (7.6% de la población)**
+    *   **Características:** Recencia 69 días. Frecuencia 2.11. Gasto promedio $372k.
+    *   **Canal:** Tienda física ~96%, virtual ~4%.
+    *   **Preferencia:** Línea Vestido (51%) y Enterizo (21%). Familia Monopieza (75%).
+    *   **Acción:** Promociones de temporada (vestidos/enterizos) y cross-selling de accesorios.
 
 *   **Cluster 2: Outlier / VIP / Alerta (1 Cliente)**
-    *   **Caracter?sticas:** Gasto ?$445 Millones. 2149 transacciones en un a?o. Recencia 0.
-    *   **Acci?n:** **AUDITOR?A INMEDIATA**. Puede ser cliente corporativo, error de sistema o caso potencial de lavado de activos por volumen inusual.
-
-### Resultados Visuales
-![Scatter Plot](images/scatter_rfm.png)
-*Gr?fico: Recencia vs Valor Monetario. Se observa la dispersi?n de los segmentos.*
-
-![Distribuci?n](images/cluster_distribution.png)
-*Gr?fico: Distribuci?n de clientes por cluster.*
+    *   **Características:** Gasto ≈$445 Millones. 2149 transacciones en un año. Recencia 0.
+    *   **Acción:** **AUDITORÍA INMEDIATA**. Puede ser cliente corporativo, error de sistema o caso potencial de lavado de activos por volumen inusual.
 
 ---
 
-## 4. Generaci?n de Se?ales de Fuga de Clientes
+## 4. Generación de Señales de Fuga de Clientes
 
-Basado en el an?lisis de Recencia del Cluster principal:
-*   Promedio de inactividad: 66 d?as.
-*   Desviaci?n est?ndar: 60 d?as.
+Basado en el análisis de Recencia del Cluster principal (Habituales):
+*   **Recencia Promedio:** ~66 días.
+*   **Desviación Estándar (aprox):** ~60 días.
 
 **Regla de Alerta de Fuga:**
-Se define un cliente en riesgo de fuga si su inactividad supera los **120 d?as** (aprox. 4 meses, o Promedio + 1 Desviaci?n Est?ndar).
+Se define un cliente en riesgo de fuga si su inactividad supera los **120 días** (aprox. 4 meses, o Promedio + 1 Desviación Estándar).
 
 **Estrategia:**
-1.  **Se?al Amarilla (60-90 d?as):** Email de "Te extra?amos" con novedades.
-2.  **Se?al Roja (>90-120 d?as):** Oferta agresiva de reactivaci?n (Descuento temporal).
-3.  **Fuga Confirmada (>180 d?as):** Pasar a base de recuperaci?n (Win-back).
+1.  **Señal Amarilla (60-90 días):** Email de "Te extrañamos" con novedades.
+2.  **Señal Roja (>90-120 días):** Oferta agresiva de reactivación (Descuento temporal).
+3.  **Fuga Confirmada (>180 días):** Pasar a base de recuperación (Win-back).
 
-**Alineaci?n con el tablero:** el KPI de riesgo usa el umbral **>120 d?as** y el sem?foro lista alertas tempranas **>90 d?as**.
+**Alineación con el tablero:** el KPI de riesgo usa el umbral **>120 días** y el semáforo lista alertas tempranas **>90 días**.
 
 ---
 
-## 5. Tablero de Control HTML + Power BI
+## 5. Tablero de Control (Propuesta Power BI)
 
-Se gener? un **prototipo HTML** en Python (Plotly) y se dejaron los datasets listos para construir el tablero en Power BI.
+El tablero se diseñaría con 3 páginas principales. Adicionalmente, se generó un **prototipo HTML** con Python para visualizar rápidamente los resultados.
 
-**Funcionalidades:**
-*   Filtros din?micos por Cluster.
-*   C?lculo de KPIs en tiempo real (Ventas, Riesgo).
-*   Gr?ficos interactivos (Zoom, Hover) con Plotly.
+### Página 1: Visión General (Overview)
+*   **KPIs:** Ventas Totales, Ticket Promedio, Clientes Activos (Recencia < 120), Tasa de Fuga.
+*   **Gráfico de Tendencia:** Ventas por mes 2023.
+*   **Mapa/Gráfico:** Ventas por Ciudad.
 
-### P?ginas sugeridas (Power BI)
-*   **P?gina 1:** KPIs + tendencia mensual + mapa de ventas por ciudad.
-*   **P?gina 2:** Dispersi?n Recencia vs Monto + distribuci?n por cluster + tabla detalle.
-*   **P?gina 3:** Sem?foro de fuga + alerta VIP/lavado.
+### Página 2: Segmentación de Clientes
+*   **Gráfico de Dispersión:** Recencia vs Monto (Coloreado por Cluster). Permite ver visualmente quienes se están alejando.
+*   **Donut Chart:** Distribución de Clientes por Cluster.
+*   **Tabla Detalle:** Lista de clientes filtrable por Cluster, mostrando "Días sin compra".
 
-### ??? Generar y abrir el tablero
-```bash
-python src/generate_static_dashboard.py
-```
-Luego abrir `docs/index.html`.
+### Página 3: Alertas y Riesgo
+*   **Semáforo de Fuga:** Lista de clientes que cruzaron el umbral de 90 días inactivos esta semana.
+*   **Top Clientes Riesgo:** Clientes de alto valor (Cluster VIP) con Recencia en aumento.
+*   **Alerta Lavado:** Visualización de transacciones > $X monto o frecuencia inusual (destacando el Outlier detectado).
 
 **Datasets para tablero:**
 *   `output/Clientes_Segmentados.csv`: base consolidada con RFM y cluster.
 *   `output/Ventas_Mensuales.csv`: tendencia mensual.
 *   `output/Ventas_Zona.csv`: ventas por ciudad/zona.
-*   `output/Ventas_Linea.csv`: ventas por linea (Top 10).
-*   `docs/index.html`: prototipo HTML.
+*   `output/Ventas_Linea.csv`: ventas por linea/familia.
+*   `docs/index.html`: prototipo HTML generado por `src/generate_static_dashboard.py`.
 
 ---
 
-## ?? Ejecuci?n del C?digo
-
-El an?lisis fue realizado en Python. Para replicar:
-
-1.  Instalar dependencias: `pip install -r requirements.txt`
-2.  Ejecutar segmentaci?n: `python src/03_segmentation.py`
-3.  Generar tablero HTML: `python src/generate_static_dashboard.py`
-
-**Archivos Generados:**
-- `output/Clientes_Segmentados.csv`: Base final con la columna `Cluster` asignada.
-- `output/Ventas_Mensuales.csv`: Ventas por mes.
-- `output/Ventas_Zona.csv`: Ventas por ciudad.
-- `output/Ventas_Linea.csv`: Ventas por linea (Top 10).
-- `docs/index.html`: Tablero HTML.
+## Archivos Entregables
+1.  `output/Reporte_Tecnico.md`: Este documento.
+2.  `src/03_segmentation.py`: Script de Python utilizado para el modelamiento.
+3.  `output/Clientes_Segmentados.csv`: Base de datos marcada con el Cluster asignado.
+4.  `docs/index.html`: Prototipo HTML del tablero (complementario a Power BI).
