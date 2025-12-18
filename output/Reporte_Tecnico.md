@@ -33,6 +33,17 @@ A continuación se describe el diccionario de datos de las variables identificad
 | `Estado` | Texto | Estado del cliente (Activo/Inactivo). | Filtro para campañas (Solo Activos). |
 | `CIIU_Actividad_economica` | Numérico | Actividad económica (f200_id_ciiu). | Clasificación sectorial. |
 
+**Campos esperados según el documento (validar existencia en la base):**
+
+| Variable | Tipo de Dato | Descripción | Transformación Sugerida |
+|----------|--------------|-------------|-------------------------|
+| `CodDepartamento` | Numérico | Código del departamento del cliente. | Cruce geográfico. |
+| `Departamento` | Texto | Nombre del departamento. | Limpieza de nombres. |
+| `CodCiudad` | Numérico | Código de la ciudad del cliente. | Cruce geográfico. |
+| `Ciudad` | Texto | Nombre de la ciudad. | Limpieza de nombres. |
+| `Zona` | Texto | Zona geográfica comercial. | Análisis de cobertura. |
+| `NkTienda` | Numérico | Tienda preferida/frecuente. | Identificación de tienda ancla. |
+
 ### BD_Transaccional (Histórico Transaccional)
 
 | Variable | Tipo de Dato | Descripción | Transformación Sugerida |
@@ -73,37 +84,50 @@ Para segmentar los clientes con enfoque en comportamiento de compra y riesgo (fu
 2.  **Frecuencia (Frequency):** Cantidad de transacciones únicas (`NumDocumento`) en el periodo. Mide la fidelidad.
 3.  **Monto (Monetary):** Suma total de `VentaSinIVA`. Mide el valor del cliente (CLV histórico).
 4.  **Preferencia de Canal:** Proporción de compras en `Tienda` vs otros canales (ej. Outlet/Bodega).
-5.  **Preferencia de Línea:** Proporción de gasto en líneas clave (Jeans, Calzado, Blusas). Ayuda a perfilar el estilo.
+5.  **Preferencia de Línea (Top 10 + Otras):** Proporción de gasto en las líneas con mayor venta y un grupo residual.
+6.  **Preferencia de Familia:** Participación del gasto por familia (Superiores, Inferiores, Monopieza, etc.).
+7.  **Preferencia de Marca:** Participación del gasto por `DescripcionMarca`.
+
+**Factores explícitos solicitados por la prueba (productos y canales):**
+*   **Producto/Servicio:** participación del gasto por `Familia`, `Linea` (Top 10 + Otras) y `DescripcionMarca`.
+*   **Canal de distribución:** `TipoEstablecimiento` y `Tipo` (tienda física, bodega/outlet, e-commerce).
+
+**Variables adicionales de enriquecimiento (si existen en la fuente):**
+*   **Geografía:** `Ciudad`, `Departamento`, `Zona` para clusters regionales.
+*   **Tienda ancla:** `NkTienda` para segmentar por fidelidad a tienda.
 
 **Nota sobre Lavado de Activos:**
-Se incluyen variables de *Monto Total* y *Frecuencia* excesiva. En el análisis se detectó un cliente (Cluster 3) con un monto de inversión anómalo (445 Millones vs promedio de 500k), lo cual es una señal de alerta prioritaria para prevención de fraude/lavado de activos.
+Se incluyen variables de *Monto Total* y *Frecuencia* excesiva. En el análisis se detectó un cliente (Cluster 2) con un monto de inversión anómalo (≈445 Millones vs promedio de 500k), lo cual es una señal de alerta prioritaria para prevención de fraude/lavado de activos.
 
 ---
 
 ## 3. Segmentación con Metodología Estadística (K-Means)
 
-Se utilizó el algoritmo **K-Means Clustering** después de normalizar las variables (StandardScaler). Se identificaron **4 Segmentos** principales:
+Se utilizó el algoritmo **K-Means Clustering** después de normalizar las variables (StandardScaler). El modelo incluye **RFM + participación por Línea (Top 10 + Otras) + Familia + Marca + Canal**. Se identificaron **4 Segmentos** principales:
 
 ### Perfil de los Segmentos
 
-*   **Cluster 1: Compradores Habituales (93% de la población)**
-    *   **Características:** Recencia promedio 66 días. Gasto promedio $580k.
-    *   **Canal:** Principalmente Tienda física.
-    *   **Preferencia:** Mix balanceado de ropa (Blusas, Jeans).
-    *   **Acción:** Programa de fidelización estándar.
+*   **Cluster 1: Compradores Base (57.5% de la población)**
+    *   **Características:** Recencia promedio 64 días. Frecuencia 3.34. Gasto promedio $616k.
+    *   **Canal:** Tienda física ~97%, virtual ~3%.
+    *   **Preferencia:** Líneas Blusa (34%) y Jean (24%). Familias Superiores (51%) e Inferiores (37%).
+    *   **Acción:** Programa de fidelización estándar y combos Blusa + Jean.
 
-*   **Cluster 0: Compradores de Oportunidad / Bodega (1.4% de la población)**
-    *   **Características:** Compran casi exclusivamente en canales tipo "Bodega" o internos.
-    *   **Gasto:** Menor ($280k).
-    *   **Acción:** Ofertas de liquidación.
+*   **Cluster 0: Complementos/Calzado/Tercera Pieza (34.8% de la población)**
+    *   **Características:** Recencia 69 días. Frecuencia 3.18. Gasto promedio $558k.
+    *   **Canal:** Tienda física ~95%, virtual ~5%.
+    *   **Preferencia:** Línea Otras (68%), Tenis (7%), Chaqueta (7%). Familias Tercera Pieza (23%), Calzado (19%), Complementos (18%).
+    *   **Acción:** Campañas de complementos y calzado con bundles.
 
-*   **Cluster 2: Entusiastas de Calzado (0.4% de la población)**
-    *   **Características:** 70% de su gasto es en "Zapato Cerrado".
-    *   **Acción:** Cross-selling de accesorios para calzado o nuevos lanzamientos de zapatos.
+*   **Cluster 3: Monopieza/Vestidos (7.6% de la población)**
+    *   **Características:** Recencia 69 días. Frecuencia 2.11. Gasto promedio $372k.
+    *   **Canal:** Tienda física ~96%, virtual ~4%.
+    *   **Preferencia:** Línea Vestido (51%) y Enterizo (21%). Familia Monopieza (75%).
+    *   **Acción:** Promociones de temporada (vestidos/enterizos) y cross-selling de accesorios.
 
-*   **Cluster 3: Outlier / VIP / Alerta (1 Cliente)**
-    *   **Características:** Gasto de $445 Millones. 2149 transacciones en un año. Recencia 0.
-    *   **Acción:** **AUDITORÍA INMEDIATA**. Puede ser un cliente corporativo, un error de sistema o un caso potencial de lavado de activos dado el volumen inusual.
+*   **Cluster 2: Outlier / VIP / Alerta (1 Cliente)**
+    *   **Características:** Gasto ≈$445 Millones. 2149 transacciones en un año. Recencia 0.
+    *   **Acción:** **AUDITORÍA INMEDIATA**. Puede ser cliente corporativo, error de sistema o caso potencial de lavado de activos por volumen inusual.
 
 ---
 
@@ -121,11 +145,13 @@ Se define un cliente en riesgo de fuga si su inactividad supera los **120 días*
 2.  **Señal Roja (>90-120 días):** Oferta agresiva de reactivación (Descuento temporal).
 3.  **Fuga Confirmada (>180 días):** Pasar a base de recuperación (Win-back).
 
+**Alineación con el tablero:** el KPI de riesgo usa el umbral **>120 días** y el semáforo lista alertas tempranas **>90 días**.
+
 ---
 
 ## 5. Tablero de Control (Propuesta Power BI)
 
-El tablero se diseñaría con 3 páginas principales:
+El tablero se diseñaría con 3 páginas principales. Adicionalmente, se generó un **prototipo HTML** con Python para visualizar rápidamente los resultados.
 
 ### Página 1: Visión General (Overview)
 *   **KPIs:** Ventas Totales, Ticket Promedio, Clientes Activos (Recencia < 120), Tasa de Fuga.
@@ -142,9 +168,17 @@ El tablero se diseñaría con 3 páginas principales:
 *   **Top Clientes Riesgo:** Clientes de alto valor (Cluster VIP) con Recencia en aumento.
 *   **Alerta Lavado:** Visualización de transacciones > $X monto o frecuencia inusual (destacando el Outlier detectado).
 
+**Datasets para tablero:**
+*   `output/Clientes_Segmentados.csv`: base consolidada con RFM y cluster.
+*   `output/Ventas_Mensuales.csv`: tendencia mensual.
+*   `output/Ventas_Zona.csv`: ventas por ciudad/zona.
+*   `output/Ventas_Linea.csv`: ventas por linea/familia.
+*   `docs/index.html`: prototipo HTML generado por `src/generate_static_dashboard.py`.
+
 ---
 
 ## Archivos Entregables
-1.  `Entrega_Prueba.md`: Este documento.
-2.  `step3_segmentation.py`: Script de Python utilizado para el modelamiento.
-3.  `Clientes_Segmentados.csv`: Base de datos marcada con el Cluster asignado.
+1.  `output/Reporte_Tecnico.md`: Este documento.
+2.  `src/03_segmentation.py`: Script de Python utilizado para el modelamiento.
+3.  `output/Clientes_Segmentados.csv`: Base de datos marcada con el Cluster asignado.
+4.  `docs/index.html`: Prototipo HTML del tablero (complementario a Power BI).

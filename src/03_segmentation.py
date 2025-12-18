@@ -18,18 +18,22 @@ def realizar_segmentacion():
         df_trans = pd.read_excel(os.path.join(ruta_base, "BD_Transaccional.xlsx"))
         df_clients = pd.read_excel(os.path.join(ruta_base, "BD_Clientes.xlsx"))
     
-    # Convertir fecha
-    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+    # Convertir fecha con tolerancia a distintos formatos
+    df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], errors='coerce')
+    # Si todo quedo en NaT, intentar conversión desde serial de Excel
+    if df_trans['FechaCalendario'].isna().all():
+        df_trans['FechaCalendario'] = pd.to_datetime(
+            df_trans['FechaCalendario'],
+            errors='coerce',
+            origin='1899-12-30',
+            unit='D'
+        )
+    
     # Filter valid dates (e.g., from 2021 onwards)
     df_trans = df_trans[df_trans['FechaCalendario'] > '2020-01-01']
     
-    # Fallback to inference if format failed for all
     if df_trans.empty:
-        # Reload and try auto
-        print("Warning: Strict date format failed, reloading with auto-detection...")
-        df_trans = pd.read_csv(os.path.join(ruta_base, "input", "Transacciones.csv"), sep=";")
-        df_trans['FechaCalendario'] = pd.to_datetime(df_trans['FechaCalendario'], errors='coerce')
-        df_trans = df_trans[df_trans['FechaCalendario'] > '2020-01-01']
+        raise ValueError("No se pudieron interpretar fechas validas en FechaCalendario.")
         
     fecha_ref = df_trans['FechaCalendario'].max()
     
@@ -47,11 +51,31 @@ def realizar_segmentacion():
         'Cantidad': 'Total_Items'
     })
     
-    # Preferencias de Producto (Pivot Linea)
-    # Calcular % de gasto por Linea
-    linea_pivot = df_trans.pivot_table(index='FkCliente', columns='Linea', values='VentaSinIVA', aggfunc='sum', fill_value=0)
+    # Preferencias de Producto (Linea, Familia, Marca)
+    # Agrupar Linea a top N para evitar dimensionalidad excesiva
+    top_lineas = (
+        df_trans.groupby('Linea')['VentaSinIVA']
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        .index
+    )
+    df_trans['Linea_Grupo'] = df_trans['Linea'].where(df_trans['Linea'].isin(top_lineas), 'Otras')
+
+    # Calcular % de gasto por Linea (Top 10 + Otras)
+    linea_pivot = df_trans.pivot_table(index='FkCliente', columns='Linea_Grupo', values='VentaSinIVA', aggfunc='sum', fill_value=0)
     linea_pivot = linea_pivot.div(linea_pivot.sum(axis=1), axis=0) # Convertir a porcentaje
     linea_pivot.columns = ['Share_Linea_' + str(c) for c in linea_pivot.columns]
+
+    # Calcular % de gasto por Familia
+    familia_pivot = df_trans.pivot_table(index='FkCliente', columns='Familia', values='VentaSinIVA', aggfunc='sum', fill_value=0)
+    familia_pivot = familia_pivot.div(familia_pivot.sum(axis=1), axis=0)
+    familia_pivot.columns = ['Share_Familia_' + str(c) for c in familia_pivot.columns]
+
+    # Calcular % de gasto por Marca
+    marca_pivot = df_trans.pivot_table(index='FkCliente', columns='DescripcionMarca', values='VentaSinIVA', aggfunc='sum', fill_value=0)
+    marca_pivot = marca_pivot.div(marca_pivot.sum(axis=1), axis=0)
+    marca_pivot.columns = ['Share_Marca_' + str(c) for c in marca_pivot.columns]
     
     # Preferencias de Canal (Pivot TipoEstablecimiento)
     channel_pivot = df_trans.pivot_table(index='FkCliente', columns='TipoEstablecimiento', values='NumDocumento', aggfunc='nunique', fill_value=0)
@@ -59,11 +83,12 @@ def realizar_segmentacion():
     channel_pivot.columns = ['Share_Channel_' + str(c) for c in channel_pivot.columns]
     
     # Unir Caracteristicas
-    features = pd.concat([user_trans, linea_pivot, channel_pivot], axis=1)
+    features = pd.concat([user_trans, linea_pivot, familia_pivot, marca_pivot, channel_pivot], axis=1)
     
     # Limpieza final
     features = features.fillna(0)
     features = features.replace([np.inf, -np.inf], 0)
+    features = features.clip(lower=0)
     
     # 2. Escalado
     scaler = StandardScaler()

@@ -91,41 +91,68 @@ def generate_dashboard():
     )
     div_donut = pio.to_html(fig_donut, full_html=False, include_plotlyjs=False, config={'responsive': True})
     
-    # Table (General) - CORREGIDO
-    table_view = df.head(50)[['FkCliente', 'Cluster', 'Recency', 'Monetary']].copy()
-    table_view.columns = ['ID Cliente', 'Cluster', 'Días Ult. Compra', 'Monto Total']
-    
-    # Formatear números grandes para mejor visualización
-    table_view['Monto Total'] = table_view['Monto Total'].apply(lambda x: f"${x:,.0f}")
-    
-    # Generar tabla con clases y atributos corregidos
-    table_html = table_view.to_html(
-        classes="table table-sm table-striped table-hover",
-        index=False,
-        border=0,
-        table_attributes='style="table-layout: fixed; width: 100%;"'
-    )
+    # Helper function for manual table generation (fixes alignment issues)
+    # Helper function for manual table generation (fixes alignment issues)
+    def create_custom_table(df_input, col_map, table_classes="table table-sm table-striped table-hover"):
+        if df_input.empty:
+            return "<p>No entries found.</p>"
+        
+        # Header - CENTERED
+        thead = "<thead><tr>"
+        for col_name in col_map.values():
+            thead += f'<th scope="col" class="text-center">{col_name}</th>'
+        thead += "</tr></thead>"
+        
+        # Body - CENTERED columns with currency formatting
+        tbody = "<tbody>"
+        for _, row in df_input.iterrows():
+            tbody += "<tr>"
+            for col_key in col_map.keys():
+                val = row[col_key]
+                
+                # Format currency logic
+                if col_key == "Monetary" or col_key == "Monto Total" or 'Monto' in col_map[col_key]:
+                     if isinstance(val, (int, float)):
+                        val = f"${val:,.0f}"
+                
+                # Force CENTER alignment for everything as requested
+                tbody += f'<td class="text-center">{val}</td>'
+            tbody += "</tr>"
+        tbody += "</tbody>"
+        
+        return f'<table class="{table_classes}">{thead}{tbody}</table>'
+
+    # Table (General)
+    table_view = df.head(50).copy()
+    # Define columns to show and their display names
+    cols_general = {
+        'FkCliente': 'ID Cliente',
+        'Cluster': 'Cluster',
+        'Recency': 'Días Ult. Compra',
+        'Monetary': 'Monto Total'
+    }
+    table_html = create_custom_table(table_view, cols_general)
 
     # TAB 3: ALERTS (Risk Tables)
     # Semáforo Fuga (>90 days)
     risk_df = df[df['Recency'] > 90].sort_values('Recency', ascending=False).head(20)
-    risk_html = risk_df[['FkCliente', 'Recency', 'Monetary', 'Cluster']].to_html(
-        classes="table table-danger table-striped", 
-        index=False,
-        table_attributes='style="table-layout: fixed; width: 100%;"'
-    )
+    cols_risk = {
+        'FkCliente': 'Cliente',
+        'Recency': 'Días Inactivo',
+        'Monetary': 'Monto Total',
+        'Cluster': 'Cluster'
+    }
+    risk_html = create_custom_table(risk_df, cols_risk, "table table-danger table-striped")
     
     # Alerta Lavado (>50M)
     vip_df = df[df['Monetary'] > 50000000].head(20)
-    if not vip_df.empty:
-        vip_df['Monetary'] = vip_df['Monetary'].apply(lambda x: f"${x:,.0f}")
-        vip_html = vip_df[['FkCliente', 'Monetary', 'Frequency', 'Cluster']].to_html(
-            classes="table table-warning table-hover", 
-            index=False,
-            table_attributes='style="table-layout: fixed; width: 100%;"'
-        )
-    else:
-        vip_html = "<p>Sin alertas de lavado</p>"
+    cols_vip = {
+        'FkCliente': 'Cliente',
+        'Monetary': 'Monto Total',
+        'Frequency': 'Frecuencia',
+        'Cluster': 'Cluster'
+    }
+    vip_html = create_custom_table(vip_df, cols_vip, "table table-warning table-hover")
 
     # --- HTML Template ---
     html_content = f"""
@@ -147,21 +174,11 @@ def generate_dashboard():
 
             .tab-content {{ overflow-x: hidden; }}
 
-            /* TABLA: Corrección de alineación */
+            /* TABLA: Estilos Limpios */
             .table-responsive {{ overflow-x: auto; }}
-            .table {{ 
-                width: 100%; 
-                table-layout: fixed; /* Forzar ancho fijo de columnas */
-            }}
-            .table th, .table td {{ 
-                text-align: left; 
-                vertical-align: middle; 
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                padding: 0.75rem;
-            }}
-            .table td:nth-child(3), .table td:nth-child(4) {{ text-align: right; }} /* Alinear columnas numéricas a la derecha */
+            .table {{ width: 100%; margin-bottom: 0; }}
+            .table th {{ background-color: #f1f2f6; position: sticky; top: 0; }}
+            .table td {{ vertical-align: middle; white-space: nowrap; }}
 
             .kpi-card {{ text-align: center; padding: 15px; background: white; border-radius: 8px; border-left: 5px solid #3498db; }}
             .kpi-value {{ font-size: 1.8em; font-weight: bold; color: #2c3e50; }}

@@ -9,7 +9,7 @@ A continuación se presenta la respuesta detallada a cada uno de los puntos soli
 2.  [Identificación de Variables](#2-identificación-de-variables-para-el-modelo-de-segmentación)
 3.  [Segmentación de Clientes (K-Means)](#3-segmentación-con-metodología-estadística)
 4.  [Señales de Fuga](#4-generación-de-señales-de-fuga-de-clientes)
-5.  [Tablero de Control](#5-tablero-de-control-propuesta)
+5.  [Tablero de Control](#5-tablero-de-control-html--power-bi)
 
 ---
 
@@ -75,13 +75,15 @@ A continuación se presenta la respuesta detallada a cada uno de los puntos soli
 
 ## 2. Identificación de Variables para el Modelo de Segmentación
 
-Para el modelo de segmentación y riesgo (fuga), se construyeron las siguientes variables clave (RFM):
+Para el modelo de segmentación y riesgo (fuga), se construyeron las siguientes variables clave:
 
 1.  **Recencia (Recency):** Días desde la última compra. (Clave para Fuga).
 2.  **Frecuencia (Frequency):** Número de facturas únicas.
 3.  **Monto (Monetary):** Total vendido sin IVA.
-4.  **Preferencia de Canal:** % de compras en Tienda vs otros.
-5.  **Preferencia de Línea:** % de gasto en Jeans vs Calzado vs Ropa.
+4.  **Preferencia de Canal:** % de compras en Tienda vs Bodega vs Virtual.
+5.  **Preferencia de Línea (Top 10 + Otras):** % de gasto por líneas con mayor venta.
+6.  **Preferencia de Familia:** % de gasto por familia (Superiores, Inferiores, Monopieza, etc.).
+7.  **Preferencia de Marca:** % de gasto por `DescripcionMarca`.
 
 ---
 
@@ -97,7 +99,7 @@ Para este análisis se seleccionó el **Aprendizaje No Supervisado (Clustering)*
 3.  **Objetividad del Algoritmo:** K-Means permite descubrir patrones ocultos y agrupar clientes por similitud matemática en su comportamiento de compra, eliminando el sesgo humano en la clasificación.
 
 ### Resultados del Modelo
-Se utilizó **K-Means Clustering** sobre las variables normalizadas. Se hallaron **4 Segmentos**:
+Se utilizó **K-Means Clustering** sobre las variables normalizadas (**RFM + producto + canal**). Se hallaron **4 segmentos** que se documentan en detalle en `output/Reporte_Tecnico.md`.
 
 ### Resultados Visuales
 ![Scatter Plot](images/scatter_rfm.png)
@@ -105,19 +107,12 @@ Se utilizó **K-Means Clustering** sobre las variables normalizadas. Se hallaron
 
 ### Análisis de Clusters
 
-*   **Cluster 1 (Habituales - 93%):** Clientes activos, gasto promedio $580k, visitan tienda física.
-*   **Cluster 2 (Calzado - 0.4%):** Nicho específico. 70% de su gasto es en zapatos.
-*   **Cluster 0 (Oportunidad - 1.4%):** Clientes de bodega/outlet. Bajo ticket.
+*   **Cluster base:** Compras frecuentes con mezcla de líneas y familias principales.
+*   **Cluster especializado:** Preferencias marcadas por línea/familia (ej. vestidos/monopieza).
+*   **Cluster complementariedad:** Mayor peso en complementos/calzado/tercera pieza.
+*   **Outlier/VIP:** Cliente con volumen atípico que requiere revisión de riesgo.
 ### Muestra de Datos Segmentados
-El archivo final `output/Clientes_Segmentados.csv` contiene la asignación del cluster para cada cliente:
-
-|   FkCliente |   Recency |   Frequency |   Monetary | Cluster | Tipo               | Genero  |
-|------------:|----------:|------------:|-----------:|-------:|:-------------------|:--------|
-|        4609 |      1419 |           6 |     282423 |      0 | Cliente Compartido | F       |
-|        5154 |      3323 |          14 |     582890 |      1 | Cliente Compartido | F       |
-|       10178 |      2330 |          11 |     267759 |      2 | Cliente Compartido | N       |
-|       13914 |       627 |          24 |     445582 |      3 | Cliente Compartido | N       |
-|       17445 |      3260 |           8 |     238491 |      1 | Cliente Compartido | F       |
+El archivo final `output/Clientes_Segmentados.csv` contiene la asignación del cluster para cada cliente y las variables de participación por producto/canal.
 
 ![Distribución](images/cluster_distribution.png)
 
@@ -139,28 +134,20 @@ Basado en el análisis de Recencia del Cluster principal:
 
 ---
 
-## 5. Tablero de Control Interactivo (Streamlit)
+## 5. Tablero de Control HTML + Power BI
 
-Se ha desarrollado un **Dashboard Interactivo** utilizando Python y Streamlit para que pueda explorar los datos sin necesidad de licencias de Power BI.
+Se generó un **prototipo HTML** en Python (Plotly) y se dejaron los datasets listos para construir el tablero en Power BI.
 
 **Funcionalidades:**
 *   Filtros dinámicos por Cluster.
 *   Cálculo de KPIs en tiempo real (Ventas, Riesgo).
 *   Gráficos interactivos (Zoom, Hover) con Plotly.
 
-### 🌐 Ver Dashboard Online
-
-Se desplegó una versión interactiva accesible desde cualquier navegador. **Haga clic en la imagen inferior** para explorar los datos dinámicamente:
-
-[![Ver Dashboard Interactivo](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
-
-> **Nota:** La versión online permite filtrar por cluster, hacer zoom en los gráficos y ver detalles específicos de cada cliente al pasar el cursor.
-
-### 🖥️ Ejecutar localmente (Opcional)
-Si desea ejecutar el código fuente en su propia máquina:
+### 🖥️ Generar y abrir el tablero
 ```bash
-streamlit run src/dashboard.py
+python src/generate_static_dashboard.py
 ```
+Luego abrir `docs/index.html`.
 
 ---
 
@@ -170,7 +157,11 @@ El análisis fue realizado en Python. Para replicar:
 
 1.  Instalar dependencias: `pip install -r requirements.txt`
 2.  Ejecutar segmentación: `python src/03_segmentation.py`
-3.  Generar gráficas: `python src/04_visualizations.py`
+3.  Generar tablero HTML: `python src/generate_static_dashboard.py`
 
 **Archivos Generados:**
 - `output/Clientes_Segmentados.csv`: Base final con la columna `Cluster` asignada.
+- `output/Ventas_Mensuales.csv`: Ventas por mes.
+- `output/Ventas_Zona.csv`: Ventas por ciudad.
+- `output/Ventas_Linea.csv`: Ventas por linea (Top 10).
+- `docs/index.html`: Tablero HTML.
