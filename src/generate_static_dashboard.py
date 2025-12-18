@@ -134,15 +134,19 @@ def generate_dashboard():
     table_html = create_custom_table(table_view, cols_general)
 
     # TAB 3: ALERTS (Risk Tables)
-    # Semáforo Fuga (>90 days)
-    risk_df = df[df['Recency'] > 90].sort_values('Recency', ascending=False).head(20)
+    # Semáforo de Fuga (verde/amarillo/rojo)
+    green_df = df[df['Recency'] <= 60].sort_values('Recency').head(20)
+    yellow_df = df[(df['Recency'] > 60) & (df['Recency'] <= 90)].sort_values('Recency', ascending=False).head(20)
+    red_df = df[df['Recency'] > 90].sort_values('Recency', ascending=False).head(20)
     cols_risk = {
         'FkCliente': 'Cliente',
         'Recency': 'Días Inactivo',
         'Monetary': 'Monto Total',
         'Cluster': 'Cluster'
     }
-    risk_html = create_custom_table(risk_df, cols_risk, "table table-danger table-striped")
+    green_html = create_custom_table(green_df, cols_risk, "table table-success table-striped")
+    yellow_html = create_custom_table(yellow_df, cols_risk, "table table-warning table-striped")
+    red_html = create_custom_table(red_df, cols_risk, "table table-danger table-striped")
     
     # Alerta Lavado (>50M)
     vip_df = df[df['Monetary'] > 50000000].head(20)
@@ -274,10 +278,20 @@ def generate_dashboard():
                 <!-- TAB 3: ALERTS -->
                 <div class="tab-pane fade" id="tab3" role="tabpanel" aria-labelledby="tab3-tab">
                     <div class="row">
-                        <div class="col-md-6">
-                            <h5 class="text-danger">🚨 Semáforo de Fuga (Top 20 > 90 días)</h5>
-                            {risk_html}
+                        <div class="col-lg-4">
+                            <h5 class="text-success">🟢 Activos (≤ 60 días)</h5>
+                            {green_html}
                         </div>
+                        <div class="col-lg-4">
+                            <h5 class="text-warning">🟡 Alerta (61-90 días)</h5>
+                            {yellow_html}
+                        </div>
+                        <div class="col-lg-4">
+                            <h5 class="text-danger">🔴 Riesgo (> 90 días)</h5>
+                            {red_html}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
                         <div class="col-md-6">
                             <h5 class="text-warning">💰 Alerta Lavado / VIP (Top > $50M)</h5>
                             {vip_html}
