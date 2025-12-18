@@ -150,7 +150,7 @@ python src/generate_static_dashboard.py
 Luego abrir `docs/index.html`.
 
 ### Vista HTML (local)
-[![Tablero HTML](images/Tablero_control.png)](docs/index.html)
+[![Tablero HTML](images/Tablero_control.png)](https://jaep321.github.io/Prueba_StudioF/)
 
 ---
 
